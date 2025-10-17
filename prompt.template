@@ -1,0 +1,11 @@
+Translate the following {SOURCE_LANG} text to {TARGET_LANG}. Provide only the translated text, without any additional explanations or introductions.
+
+# Text type:
+
+{TEXT_TYPE}
+
+# Source text:
+
+{SOURCE_TEXT}
+
+# {TARGET_LANG} translation:
