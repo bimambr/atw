@@ -207,9 +207,11 @@ async def main():
 
     input_files = [Path(p) for p in args.input.split(",")]
     output_files = [
-        (p.parent / "multipass_attempts")
-        .with_name(p.stem + "_translated")
-        .with_suffix(".csv")
+        (
+            p.parent
+            / "multipass_attempts"
+            / f"{p.stem}_translated_{args.model}_attempt.csv"
+        )
         for p in input_files
     ]
 
