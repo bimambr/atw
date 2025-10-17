@@ -190,7 +190,10 @@ async def main():
 
     input_files = [Path(p) for p in args.input.split(",")]
     output_files = [
-        p.with_name(p.stem + "_translated").with_suffix(".csv") for p in input_files
+        (p.parent / "singlepass_attempts")
+        .with_name(p.stem + "_translated")
+        .with_suffix(".csv")
+        for p in input_files
     ]
 
     LOGGER.info("Model: %s", args.model)
