@@ -122,11 +122,11 @@ parser.add_argument(
     default=TIMEOUT,
     help=f"Timeout for API requests in seconds (default: {TIMEOUT})",
 )
-args = parser.parse_args(namespace=CLIArgs())
 
 
 async def generate_translation(
     client: aiohttp.ClientSession,
+    endpoint: str,
     model: str,
     prompt: str,
     system_prompt: str,
@@ -146,9 +146,7 @@ async def generate_translation(
             ],
         }
 
-        async with client.post(
-            args.endpoint, json=payload, timeout=timeout
-        ) as response:
+        async with client.post(endpoint, json=payload, timeout=timeout) as response:
             LOGGER.info(
                 "Received response with status code: %d, data: %s",
                 response.status,
@@ -205,6 +203,7 @@ def signal_handler(event: asyncio.Event) -> None:
 async def main():
     LOGGER.info("Starting Lemonade translation experiment...")
 
+    args = parser.parse_args(namespace=CLIArgs())
     input_files = [Path(p) for p in args.input.split(",")]
     output_files = [
         (
@@ -260,7 +259,7 @@ async def main():
                             text_idx + 1,
                             len(input_json["texts"]),
                         )
-                        filled_prompt = DRAFT_PROMPT.format(
+                        draft_prompt = DRAFT_PROMPT.format(
                             SOURCE_TEXT=text,
                             SOURCE_LANG=input_json["source_lang"],
                             TARGET_LANG=input_json["target_lang"],
@@ -285,8 +284,9 @@ async def main():
                             draft_translation = await wait(
                                 generate_translation(
                                     client,
+                                    args.endpoint,
                                     args.model,
-                                    filled_prompt,
+                                    draft_prompt,
                                     filled_system_prompt,
                                     DRAFT_TEMP,
                                     current_seed,
@@ -309,6 +309,7 @@ async def main():
                             final_translation = await wait(
                                 generate_translation(
                                     client,
+                                    args.endpoint,
                                     args.model,
                                     refinement_prompt,
                                     filled_system_prompt,
