@@ -26,7 +26,7 @@ from typing import TypedDict
 
 import aiohttp
 
-from lib import Bail, run_inference, signal_handler, wait
+from lib import Bail, get_next_available_path, run_inference, signal_handler, wait
 
 ENDPOINT = "http://localhost:8000/v1/chat/completions"
 MODEL_NAME = "gemma-3n-E4B-it-GGUF"
@@ -380,7 +380,7 @@ async def main():
     input_files = [Path(p) for p in args.input.split(",")]
     root = Path(__file__).parent
     output_files = [
-        (
+        get_next_available_path(
             root
             / "evaluator_optimizer_attempts"
             / f"{p.stem}_translated_{args.model}_attempt.csv"

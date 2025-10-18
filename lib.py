@@ -1,6 +1,8 @@
 import asyncio
 import json
 import logging
+import re
+from pathlib import Path
 from typing import Awaitable, TypeVar, cast
 
 import aiohttp
@@ -93,3 +95,21 @@ async def wait(awaitable: Awaitable[T], event: asyncio.Event) -> T:
 def signal_handler(event: asyncio.Event) -> None:
     LOGGER.info("Received CTRL+C")
     asyncio.get_running_loop().call_soon_threadsafe(lambda: event.set())
+
+
+def get_next_available_path(path: Path) -> Path:
+    parent = path.parent
+    stem = path.stem
+    suffix = path.suffix
+    pattern = f"{stem}_*{suffix}"
+    existing = parent.glob(pattern)
+
+    max_index = 0
+    for f in existing:
+        f_match = re.match(rf"^{re.escape(stem)}_(\d+){re.escape(suffix)}$", f.name)
+        if f_match:
+            idx = int(f_match.group(1))
+            max_index = max(max_index, idx)
+
+    next_index = max_index + 1
+    return parent / f"{stem}_{next_index}{suffix}"
