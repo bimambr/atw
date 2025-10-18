@@ -32,6 +32,7 @@ ENDPOINT = "http://localhost:8000/v1/chat/completions"
 MODEL_NAME = "gemma-3n-E4B-it-GGUF"
 EVALUATOR_TEMP = 0.01
 GENERATOR_TEMP = 1.4
+GENERATOR_ALT_TEMP = 0.7  # used when applying suggestions
 EVALUATOR_SEED = 727
 DEFAULT_N_ITERATIONS = 5
 MAX_N_ITERATIONS = 10
@@ -40,42 +41,78 @@ MAX_REFINEMENT_ITERATIONS = 5
 # provide up to MAX_N_ITERATIONS iterations worth of seeds
 SEEDS = [101, 202, 303, 404, 505, 606, 707, 808, 909, 1010]
 TIMEOUT = 240
-GENERATOR_SYSTEM_PROMPT = """You are a professional linguistic translator with a specialization in formal, legal, and literary texts. Your primary directive is to provide a precise and faithful translation from {SOURCE_LANG} to {TARGET_LANG}. Adhere strictly to the following principles:
+GENERATOR_SYSTEM_PROMPT = """<ROLE>
+You are a professional linguistic translator. Your primary directive is to provide a precise and faithful translation from {SOURCE_LANG} to {TARGET_LANG}. If a Revision Plan is provided, then you must implement every point from the plan in your translation. Failure to do so will be considered a critical error.
+</ROLE>
 
-1. **Prioritize Semantic Equivalence:** Your goal is to translate the meaning, intent, and nuance of the source text, not just the literal words. Find the most natural and accurate phrasing in the {TARGET_LANG} that preserves the original message. Remember that sometimes a direct translation is not the most desirable method if it compromises meaning or readability.
-2. **Maintain Register and Tone:** The tone of your translation must be neutral, formal, and academic. Avoid colloquialisms, slang, or overly casual language unless it is a direct and intentional translation of such language in the source text.
-3. **Handle Idiomatic and Cultural Nuances:** When encountering an idiom or culturally specific reference, provide the closest functional equivalent in the {TARGET_LANG}. If a direct equivalent does not exist, provide a translation that preserves the intended meaning rather than a literal, and potentially nonsensical, rendering.
-4. **Do Not Omit Information:** Do not trim anything from the source unless it is a direct translation. You may add more information in the event that there is a cultural item that does not exist in the target language. You may format it as a parenthetical explanation or as a translator note.
-5. **Output Format is Absolute:** Your response must contain ONLY the translated text and nothing else. Do not include introductory phrases like "Here is the translation:" or any other conversational filler.
-6. **Text Type Consideration:** Adapt your translation style to fit the specified text type (e.g., literary, technical, legal, general). Each text type has its own conventions and expectations that must be respected.
+<PRINCIPLES>
+You must adhere strictly to the following principles:
 
-If feedback is provided indicating issues with accuracy, tone, or register, you must revise the translation accordingly to address those specific concerns.
+1.  **Semantic Equivalence:** Your goal is to translate the meaning, intent, and nuance of the source text, not just the literal words. Find the most natural phrasing in the {TARGET_LANG} that preserves the original message.
+2.  **Register and Tone:** The tone of your translation must be neutral, formal, and academic. Avoid colloquialisms unless they are a direct and intentional translation of such language in the source text.
+3.  **Cultural Nuances:** When encountering an idiom or culturally specific reference, provide the closest functional equivalent in the {TARGET_LANG}.
+4.  **Information Fidelity:** Do not add or omit information. If a cultural item requires explanation, you may add a brief parenthetical note.
+5.  **Text Type Adaptation:** Adapt your translation style to fit the specified text type (e.g., literary, legal, general).
+</PRINCIPLES>
+
+<FINAL_INSTRUCTION>
+Your response must contain ONLY the translated text. Do not include any introductory phrases like "Here is the translation:" or any other conversational filler.
+</FINAL_INSTRUCTION>
 """
-GENERATOR_INIT_USER_PROMPT = """Translate the following {SOURCE_LANG} text to {TARGET_LANG}. Provide only the translated text, without any additional explanations or introductions.
-
+GENERATOR_INIT_USER_PROMPT = """<CONTEXT>
 **Text type:**
 {TEXT_TYPE}
 
 **Source text:**
 {SOURCE_TEXT}
+</CONTEXT>
 
-**{TARGET_LANG} translation:**
+<TASK>
+Provide the {TARGET_LANG} translation:
+</TASK>
 """
-EVALUATOR_SYSTEM_PROMPT = """You are a meticulous but fair translation evaluator. Your task is to grade a machine-generated translation against the original source text with a focus on identifying significant, material flaws.
+EVALUATOR_SYSTEM_PROMPT = """<ROLE>
+You are a senior quality assurance editor. Your reputation depends on your ability to find flaws. Your default assumption is that every translation can be improved.
+</ROLE>
 
-Your evaluation must be guided by the **Principle of Materiality**: A flaw is only worth reporting if it materially impacts the translation's accuracy, fluency, or tone. Do not provide feedback based on subjective preference if the translation is already a valid and high-quality alternative.
+<INTERNAL_THOUGHT_PROCESS>
+(Do not write this in your output)
+First, you must assess the text's context (audience, purpose, tone). Second, using that context, you must rigorously compare the translation to the source text to identify any and all potential flaws.
+</INTERNAL_THOUGHT_PROCESS>
 
-You must follow a strict three-step critical process:
-1.  **Identify Material Flaws:** First, compare the translation to the source text. Identify any inaccuracies, awkward phrasing, or tonal errors that tangibly harm the quality of the translation. If you cannot find any material flaws, you must explicitly state: "No material flaws found."
-2.  **Suggest Improvements:** Based only on the material flaws you identified, provide concrete, actionable suggestions for how the translator can fix the specific issues.
-3.  **Provide a Final Grade:** After your analysis, provide a final grade on a new line. The grade must be one of two options: 'acceptable' or 'needs_revision'.
-    - Grade as 'needs_revision' if you identified one or more material flaws.
-    - Grade as 'acceptable' ONLY if the translation is a high-quality, professional rendering of the source text, even if you can imagine other ways to phrase it.
+<OUTPUT_COMPONENTS>
+Your output will consist of two potential parts:
+1.  **A Revision Plan:** A numbered list of specific changes. Each item must follow this exact format:
+    -   **Quote:** The exact phrase from the translation that needs to be changed.
+    -   **Suggestion:** Your direct, improved replacement (clean and unformatted).
+    -   **Reason:** A brief explanation for the change.
 
-Your entire output must follow this structure. Always put the final grade on its own line at the end of your response.
+2.  **A Final Grade:** A single word: 'acceptable' or 'needs_revision'.
+</OUTPUT_COMPONENTS>
+
+<REQUIRED_OUTPUT_STRUCTURE>
+Your entire response must ONLY contain the content described above.
+- **Do not include any headings, titles, or introductory text whatsoever.** For example, do not write "Revision Plan:" or "Final Grade:".
+- If revisions are needed, provide the numbered list of changes first.
+- The final grade (`acceptable` or `needs_revision`) **must** be the very last thing in your response, on its own, separate line.
+</REQUIRED_OUTPUT_STRUCTURE>
+
+<EXAMPLE_OF_GOOD_OUTPUT>
+1.  **Quote:** "Saya kangen sama Anda."
+    **Suggestion:** "Aku kangen sama kamu."
+    **Reason:** "Aku" and "kamu" sound more natural and intimate; "saya" and "Anda" are too formal for this context.
+2.  **Quote:** "Yang menarik gerbong ke atas dan bawah jalan."
+    **Suggestion:** "Yang menarik gerbong bolak balik."
+    **Reason:** The phrase 'up and down the street' does not refer to vertical motion, but rather to the back-and-forth movement along the street.
+needs_revision
+</EXAMPLE_OF_GOOD_OUTPUT>
+
+<CRUCIAL_RULE>
+- If you find no flaws after your rigorous internal analysis, your entire response must be the single word: `acceptable`.
+- In all other cases, you must provide both the revision plan and the 'needs_revision' grade according to the specified structure.
+</CRUCIAL_RULE>
 """
-EVALUATOR_USER_PROMPT = """Please evaluate the following translation using your three-step critical process.
-
+EVALUATOR_USER_PROMPT = """<CONTEXT>
 **Text type:**
 {TEXT_TYPE}
 
@@ -84,24 +121,34 @@ EVALUATOR_USER_PROMPT = """Please evaluate the following translation using your 
 
 **Translation to Evaluate ({TARGET_LANG}):**
 {TRANSLATION_ATTEMPT}
+</CONTEXT>
 
-**Your Critical Evaluation:**
+<TASK>
+Please provide your critical evaluation based on the four-step process defined in your system instructions.
+</TASK>
 """
-RETRY_PROMPT = """Please try translating the following text again. A previous attempt was evaluated and requires revision. Use the provided feedback to create a new, improved translation.
-
+RETRY_PROMPT = """<CONTEXT>
 **Text type:**
 {TEXT_TYPE}
 
 **Original Source Text:**
 {SOURCE_TEXT}
 
-**Your previous attempt (contains errors):**
+**Your Previous Attempt (Contains errors):**
 {TRANSLATION_ATTEMPT}
+</CONTEXT>
 
-**Feedback on Previous Attempt:**
+<REVISION_PLAN>
 {FEEDBACK}
+</REVISION_PLAN>
 
-**Your New, Improved Translation:**
+<FINAL_INSTRUCTION>
+Your single most important task is to generate a new translation that **implements every point** from the `REVISION_PLAN`. You must not skip any suggestions. Failure to implement all suggestions will result in a failed task. Produce only the single, clean, final block of text in {TARGET_LANG}.
+</FINAL_INSTRUCTION>
+
+<TASK>
+Provide your new, final, and improved translation in {TARGET_LANG}:
+</TASK>
 """
 
 LOGGER = logging.getLogger(__name__)
@@ -245,8 +292,9 @@ async def handle_evaluation_state(state: State) -> None:
         state["evaluator_seed"],
         timeout=args.timeout,
     )
-    last_attempt["grade"] = grade = output.rsplit(maxsplit=1)[0].strip().lower()
-    last_attempt["feedback"] = output[: len(grade)].strip()
+    grade_raw = output.rsplit(maxsplit=1)[-1].lower()
+    last_attempt["feedback"] = output[: len(grade_raw)].strip()
+    last_attempt["grade"] = grade_raw.strip("\n *")
 
     state["csv_writer"].writerow(
         (
@@ -264,9 +312,12 @@ async def handle_evaluation_state(state: State) -> None:
         )
     )
 
+    if last_attempt["grade"] not in ("acceptable", "needs_revision"):
+        LOGGER.warning("Unexpected grade '%s' received!", last_attempt["grade"])
+
     state["next_state"] = "refinement"
     if (
-        last_attempt["grade"] == "acceptable"
+        "acceptable" in last_attempt["grade"]
         or state["attempt"] >= state["max_attempt"]
     ):
         state["next_state"] = "done"
@@ -291,6 +342,7 @@ async def handle_refinement_state(state: State) -> None:
         TRANSLATION_ATTEMPT=last_attempt["translation"],
         FEEDBACK=last_attempt["feedback"],
         TEXT_TYPE=state["source_text"]["type"],
+        TARGET_LANG=state["source_text"]["target_lang"],
     )
     system_prompt = GENERATOR_SYSTEM_PROMPT.format(
         SOURCE_LANG=state["source_text"]["source_lang"],
@@ -302,7 +354,7 @@ async def handle_refinement_state(state: State) -> None:
         args.model,
         refinement_prompt,
         system_prompt,
-        GENERATOR_TEMP,
+        GENERATOR_ALT_TEMP,
         state["generator_seed"],
         timeout=args.timeout,
     )
@@ -362,7 +414,7 @@ async def main():
                             "iteration_id",
                             "attempt",
                             "generator_seed",
-                            "evaluator_temp",
+                            "evaluator_seed",
                             "generator_temp",
                             "evaluator_temp",
                             "source_text",
