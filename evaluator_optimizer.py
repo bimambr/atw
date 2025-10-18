@@ -342,7 +342,6 @@ async def handle_evaluation_state(state: State) -> None:
         or state["attempt"] >= state["max_attempt"]
     ):
         state["next_state"] = "done"
-        return
 
 
 async def handle_refinement_state(state: State) -> None:
