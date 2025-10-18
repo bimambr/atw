@@ -304,8 +304,20 @@ async def handle_evaluation_state(state: State) -> None:
         timeout=args.timeout,
         grammar=EVALUATOR_JSON_GRAMMAR,
     )
-    json_output = json.loads(json_output_str)
-    last_attempt.update(json_output)
+
+    try:
+        json_output = json.loads(json_output_str)
+        last_attempt.update(json_output)
+    except json.JSONDecodeError:
+        LOGGER.error("Failed to parse JSON from evaluator output: %s", json_output_str)
+        last_attempt["rubric"] = {
+            "semantic_accuracy": False,
+            "tonal_fidelity": False,
+            "natural_fluency": False,
+            "nuance_preservation": False,
+        }
+        last_attempt["grade"] = "N/A"
+        last_attempt["feedback"] = "Failed to parse evaluator output."
 
     state["csv_writer"].writerow(
         (
