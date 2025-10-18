@@ -30,7 +30,7 @@ from lib import Bail, run_inference, signal_handler, wait
 
 ENDPOINT = "http://localhost:8000/v1/chat/completions"
 MODEL_NAME = "gemma-3n-E4B-it-GGUF"
-EVALUATOR_TEMP = 0.01
+EVALUATOR_TEMP = 0.1
 GENERATOR_TEMP = 1.4
 GENERATOR_ALT_TEMP = 0.7  # used when applying suggestions
 EVALUATOR_SEED = 727
@@ -41,122 +41,119 @@ MAX_REFINEMENT_ITERATIONS = 5
 # provide up to MAX_N_ITERATIONS iterations worth of seeds
 SEEDS = [101, 202, 303, 404, 505, 606, 707, 808, 909, 1010]
 TIMEOUT = 240
-GENERATOR_SYSTEM_PROMPT = """<ROLE>
-You are a professional linguistic translator. Your primary directive is to provide a precise and faithful translation from {SOURCE_LANG} to {TARGET_LANG}. If a Revision Plan is provided, then you must implement every point from the plan in your translation. Failure to do so will be considered a critical error.
-</ROLE>
+GENERATOR_SYSTEM_PROMPT = """You are a professional linguistic translator. Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from {SOURCE_LANG} to {TARGET_LANG}.
 
-<PRINCIPLES>
-You must adhere strictly to the following principles:
+--- CORE PRINCIPLES ---
+1.  **Meaning and Nuance:** Translate the core meaning, intent, and nuance of the source text.
+2.  **Tone and Register:** Match the tone of the source text (e.g., formal, literary, technical).
+3.  **Fluency:** The final translation must read naturally in the {TARGET_LANG}.
 
-1.  **Semantic Equivalence:** Your goal is to translate the meaning, intent, and nuance of the source text, not just the literal words. Find the most natural phrasing in the {TARGET_LANG} that preserves the original message.
-2.  **Register and Tone:** The tone of your translation must be neutral, formal, and academic. Avoid colloquialisms unless they are a direct and intentional translation of such language in the source text.
-3.  **Cultural Nuances:** When encountering an idiom or culturally specific reference, provide the closest functional equivalent in the {TARGET_LANG}.
-4.  **Information Fidelity:** Do not add or omit information. If a cultural item requires explanation, you may add a brief parenthetical note.
-5.  **Text Type Adaptation:** Adapt your translation style to fit the specified text type (e.g., literary, legal, general).
-</PRINCIPLES>
-
-<FINAL_INSTRUCTION>
-Your response must contain ONLY the translated text. Do not include any introductory phrases like "Here is the translation:" or any other conversational filler.
-</FINAL_INSTRUCTION>
+--- OUTPUT FORMAT ---
+Your response must contain ONLY the translated text. Do not include any introductory phrases or explanations.
 """
-GENERATOR_INIT_USER_PROMPT = """<CONTEXT>
-**Text type:**
-{TEXT_TYPE}
+GENERATOR_INIT_USER_PROMPT = """--- CONTEXT ---
+Text type: {TEXT_TYPE}
+Source Language: {SOURCE_LANG}
+Target Language: {TARGET_LANG}
 
-**Source text:**
-{SOURCE_TEXT}
-</CONTEXT>
-
-<TASK>
-Provide the {TARGET_LANG} translation:
-</TASK>
-"""
-EVALUATOR_SYSTEM_PROMPT = """<ROLE>
-You are a senior quality assurance editor. Your reputation depends on your ability to find flaws. Your default assumption is that every translation can be improved.
-</ROLE>
-
-<INTERNAL_THOUGHT_PROCESS>
-(Do not write this in your output)
-First, you must assess the text's context (audience, purpose, tone). Second, using that context, you must rigorously compare the translation to the source text to identify any and all potential flaws.
-</INTERNAL_THOUGHT_PROCESS>
-
-<OUTPUT_COMPONENTS>
-Your output will consist of two potential parts:
-1.  **A Revision Plan:** A numbered list of specific changes. Each item must follow this exact format:
-    -   **Quote:** The exact phrase from the translation that needs to be changed.
-    -   **Suggestion:** Your direct, improved replacement (clean and unformatted).
-    -   **Reason:** A brief explanation for the change.
-
-2.  **A Final Grade:** A single word: 'acceptable' or 'needs_revision'.
-</OUTPUT_COMPONENTS>
-
-<REQUIRED_OUTPUT_STRUCTURE>
-Your entire response must ONLY contain the content described above.
-- **Do not include any headings, titles, or introductory text whatsoever.** For example, do not write "Revision Plan:" or "Final Grade:".
-- If revisions are needed, provide the numbered list of changes first.
-- The final grade (`acceptable` or `needs_revision`) **must** be the very last thing in your response, on its own, separate line.
-</REQUIRED_OUTPUT_STRUCTURE>
-
-<EXAMPLE_OF_GOOD_OUTPUT>
-1.  **Quote:** "Saya kangen sama Anda."
-    **Suggestion:** "Aku kangen sama kamu."
-    **Reason:** "Aku" and "kamu" sound more natural and intimate; "saya" and "Anda" are too formal for this context.
-2.  **Quote:** "Yang menarik gerbong ke atas dan bawah jalan."
-    **Suggestion:** "Yang menarik gerbong bolak balik."
-    **Reason:** The phrase 'up and down the street' does not refer to vertical motion, but rather to the back-and-forth movement along the street.
-needs_revision
-</EXAMPLE_OF_GOOD_OUTPUT>
-
-<CRUCIAL_RULE>
-- If you find no flaws after your rigorous internal analysis, your entire response must be the single word: `acceptable`.
-- In all other cases, you must provide both the revision plan and the 'needs_revision' grade according to the specified structure.
-</CRUCIAL_RULE>
-"""
-EVALUATOR_USER_PROMPT = """<CONTEXT>
-**Text type:**
-{TEXT_TYPE}
-
-**Original Source Text ({SOURCE_LANG}):**
+--- SOURCE TEXT ---
 {SOURCE_TEXT}
 
-**Translation to Evaluate ({TARGET_LANG}):**
+--- TASK ---
+Provide the translation in {TARGET_LANG}:
+"""
+EVALUATOR_SYSTEM_PROMPT = """You are a Quality Assurance Gatekeeper for a prestigious publishing house. Your sole purpose is to protect the company's reputation by rejecting any translation that is not of the absolute highest quality. You are known for being extremely strict, fair, and having an eye for detail.
+
+--- MANDATORY EVALUATION RUBRIC ---
+You MUST first evaluate the translation against the following four criteria. For each criterion, you must assign a grade of **PASS** or **FAIL**.
+
+1.  **Semantic Accuracy:** Does it perfectly preserve the meaning, including all subtext and implications? Make sure to check for any mistranslations or omissions and see if there is any phrase that is translated without considering the full, broader context.
+2.  **Tonal Fidelity:** Does it match the source text's tone (e.g., literary, formal, informal) precisely?
+3.  **Natural Fluency:** Does it read like a native speaker wrote it, with no awkward phrasing or grammatical errors?
+4.  **Nuance Preservation:** Are subtle cultural references, wordplay, or literary devices handled effectively?
+
+--- REQUIRED OUTPUT STRUCTURE ---
+Your entire response MUST follow this structure in this exact order:
+
+1.  **The Rubric Scorecard:** First, list your grades for the four criteria.
+2.  **The Final Grade:** On a new line, provide the overall grade: `acceptable` or `needs_revision`.
+3.  **The Critique:** Following the final grade, provide your detailed analysis explaining the reasoning behind your scorecard and final grade.
+
+--- CRUCIAL RULE ---
+If even ONE criterion in your scorecard is marked as **FAIL**, the final grade MUST be `needs_revision`. You can only give a grade of `acceptable` if all four criteria are a **PASS**.
+"""
+EVALUATOR_USER_PROMPT = """--- CONTEXT ---
+Text type: {TEXT_TYPE}
+Source Language: {SOURCE_LANG}
+Target Language: {TARGET_LANG}
+
+--- SOURCE TEXT ---
+{SOURCE_TEXT}
+
+--- TRANSLATION TO EVALUATE ---
 {TRANSLATION_ATTEMPT}
-</CONTEXT>
 
-<TASK>
-Please provide your critical evaluation based on the four-step process defined in your system instructions.
-</TASK>
+--- TASK ---
+Provide your grade and critique based on your system instructions.
 """
-RETRY_PROMPT = """<CONTEXT>
-**Text type:**
-{TEXT_TYPE}
+# https://github.com/ggml-org/llama.cpp/tree/master/grammars
+EVALUATOR_JSON_GRAMMAR = r"""boolean ::= ("true" | "false") space
+char ::= [^"\\\x7f\x00-\x1f] | [\\] (["\\bfnrt] | "u" [0-9a-fA-F]{4})
+feedback-kv ::= "\"feedback\"" space ":" space string
+grade ::= ("\"acceptable\"" | "\"needs_revision\"") space
+grade-kv ::= "\"grade\"" space ":" space grade
+root ::= "{" space rubric-kv "," space grade-kv "," space feedback-kv "}" space
+rubric ::= "{" space rubric-semantic-accuracy-kv "," space rubric-tonal-fidelity-kv "," space rubric-natural-fluency-kv "," space rubric-nuance-preservation-kv "}" space
+rubric-kv ::= "\"rubric\"" space ":" space rubric
+rubric-natural-fluency-kv ::= "\"natural_fluency\"" space ":" space boolean
+rubric-nuance-preservation-kv ::= "\"nuance_preservation\"" space ":" space boolean
+rubric-semantic-accuracy-kv ::= "\"semantic_accuracy\"" space ":" space boolean
+rubric-tonal-fidelity-kv ::= "\"tonal_fidelity\"" space ":" space boolean
+space ::= | " " | "\n"{1,2} [ \t]{0,20}
+string ::= "\"" char* "\"" space
+"""
+JSON_FORMATTER_SYSTEM_PROMPT = """You are a highly efficient text-parsing robot. Your only function is to extract structured data from a given text and format it as a JSON object. You do not re-interpret, evaluate, or change the information. You only extract and format.
+"""
+JSON_FORMATTER_USER_PROMPT = """Please parse the following evaluation text and convert it into a valid JSON object with three keys: "rubric" (an object with four boolean keys), "grade" (a string), and "feedback" (a string).
 
-**Original Source Text:**
+--- TEXT TO PARSE ---
+{EVALUATION_TEXT}
+
+--- JSON OUTPUT ---
+"""
+RETRY_PROMPT = """A previous translation attempt was evaluated and requires a complete rewrite. Your task is to deeply consider the editor's critique and generate a completely new version of the translation that addresses the identified problems.
+
+**Start again from scratch, keeping the feedback in mind.**
+
+--- CONTEXT ---
+Text type: {TEXT_TYPE}
+Source Language: {SOURCE_LANG}
+Target Language: {TARGET_LANG}
+
+--- SOURCE TEXT ---
 {SOURCE_TEXT}
 
-**Your Previous Attempt (Contains errors):**
-{TRANSLATION_ATTEMPT}
-</CONTEXT>
-
-<REVISION_PLAN>
+--- EDITOR'S CRITIQUE TO ADDRESS ---
 {FEEDBACK}
-</REVISION_PLAN>
 
-<FINAL_INSTRUCTION>
-Your single most important task is to generate a new translation that **implements every point** from the `REVISION_PLAN`. You must not skip any suggestions. Failure to implement all suggestions will result in a failed task. Produce only the single, clean, final block of text in {TARGET_LANG}.
-</FINAL_INSTRUCTION>
-
-<TASK>
-Provide your new, final, and improved translation in {TARGET_LANG}:
-</TASK>
+--- FINAL TASK ---
+Generate a new, final, and improved translation in {TARGET_LANG}. Your output must be only the clean, final text.
 """
 
 LOGGER = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
+class Rubric(TypedDict):
+    semantic_accuracy: bool
+    tonal_fidelity: bool
+    natural_fluency: bool
+    nuance_preservation: bool
+
+
 class TranslationAttempt(TypedDict):
     translation: str
+    rubric: Rubric
     grade: str
     feedback: str
 
@@ -261,6 +258,7 @@ async def handle_draft_state(state: State) -> None:
     )
     state["last_attempt"] = {
         "translation": draft_translation,
+        "rubric": {},
         "grade": "",
         "feedback": "",
     }
@@ -282,7 +280,7 @@ async def handle_evaluation_state(state: State) -> None:
         TRANSLATION_ATTEMPT=last_attempt["translation"],
         TEXT_TYPE=state["source_text"]["type"],
     )
-    output = await run_inference(
+    free_form_output = await run_inference(
         state["client"],
         args.endpoint,
         args.model,
@@ -292,9 +290,22 @@ async def handle_evaluation_state(state: State) -> None:
         state["evaluator_seed"],
         timeout=args.timeout,
     )
-    grade_raw = output.rsplit(maxsplit=1)[-1].lower()
-    last_attempt["feedback"] = output[: len(grade_raw)].strip()
-    last_attempt["grade"] = grade_raw.strip("\n *")
+    json_formatter_prompt = JSON_FORMATTER_USER_PROMPT.format(
+        EVALUATION_TEXT=free_form_output
+    )
+    json_output_str = await run_inference(
+        state["client"],
+        args.endpoint,
+        args.model,
+        json_formatter_prompt,
+        JSON_FORMATTER_SYSTEM_PROMPT,
+        temperature=0.0,
+        seed=1,
+        timeout=args.timeout,
+        grammar=EVALUATOR_JSON_GRAMMAR,
+    )
+    json_output = json.loads(json_output_str)
+    last_attempt.update(json_output)
 
     state["csv_writer"].writerow(
         (
@@ -306,14 +317,12 @@ async def handle_evaluation_state(state: State) -> None:
             EVALUATOR_TEMP,
             state["source_text"]["text"],
             last_attempt["translation"],
+            "\n".join(f"{k}: {v}" for k, v in last_attempt["rubric"].items()),
             last_attempt["grade"],
             last_attempt["feedback"],
             time.ctime(),
         )
     )
-
-    if last_attempt["grade"] not in ("acceptable", "needs_revision"):
-        LOGGER.warning("Unexpected grade '%s' received!", last_attempt["grade"])
 
     state["next_state"] = "refinement"
     if (
@@ -339,9 +348,9 @@ async def handle_refinement_state(state: State) -> None:
     last_attempt = state["last_attempt"]
     refinement_prompt = RETRY_PROMPT.format(
         SOURCE_TEXT=state["source_text"]["text"],
-        TRANSLATION_ATTEMPT=last_attempt["translation"],
         FEEDBACK=last_attempt["feedback"],
         TEXT_TYPE=state["source_text"]["type"],
+        SOURCE_LANG=state["source_text"]["source_lang"],
         TARGET_LANG=state["source_text"]["target_lang"],
     )
     system_prompt = GENERATOR_SYSTEM_PROMPT.format(
@@ -360,9 +369,13 @@ async def handle_refinement_state(state: State) -> None:
     )
     state["last_attempt"] = {
         "translation": refinement_translation,
+        "rubric": {},
         "grade": "",
         "feedback": "",
     }
+
+
+1
 
 
 async def main():
@@ -419,6 +432,7 @@ async def main():
                             "evaluator_temp",
                             "source_text",
                             "translation_attempt",
+                            "rubric",
                             "grade",
                             "feedback",
                             "timestamp",

@@ -22,6 +22,7 @@ async def run_inference(
     temperature: float,
     seed: int,
     timeout: int,
+    grammar: str | None = None,
 ) -> str:
     LOGGER.info("Hitting %s with temp=%f, seed=%d", endpoint, temperature, seed)
     try:
@@ -36,6 +37,9 @@ async def run_inference(
             ],
             "cache_prompt": False,
         }
+
+        if grammar is not None:
+            payload["grammar"] = grammar
 
         async with client.post(endpoint, json=payload, timeout=timeout) as response:
             LOGGER.info(

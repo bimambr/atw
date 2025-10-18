@@ -1,4 +1,4 @@
-evaluator in literature attempt 2 uses this system prompt (too restrictive):
+- evaluator in literature attempt 2 uses this system prompt (too restrictive):
 
 ```py
 EVALUATOR_SYSTEM_PROMPT = """You are a meticulous and brutally honest translation evaluator. Your sole purpose is to identify flaws. Your default assumption must be that the translation can be improved.
@@ -12,7 +12,7 @@ You must start your response with your grade first (either 'acceptable' or 'need
 """
 ```
 
-evaluator in literature attempt 3 uses this system prompt in an attempt to make it more lenient:
+- evaluator in literature attempt 3 uses this system prompt in an attempt to make it more lenient:
 
 ```py
 EVALUATOR_SYSTEM_PROMPT = """You are a meticulous but fair translation evaluator. Your task is to grade a machine-generated translation against the original source text with a focus on identifying significant, material flaws.
@@ -29,3 +29,6 @@ You must follow a strict three-step critical process:
 Your entire output must follow this structure.
 """
 ```
+
+- literature attempts 5 (evaluator temp 0.5) and 6 (evaluator temp 0.1) uses json formatter. verdict: attempt 6 is good enough, but the latency could be better!
+- todo: literature attempt 7 uses a smaller model (gemma-3-270M-it-qat) for the json formatter.
