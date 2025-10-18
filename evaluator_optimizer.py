@@ -31,8 +31,8 @@ from lib import Bail, run_inference, signal_handler, wait
 ENDPOINT = "http://localhost:8000/v1/chat/completions"
 MODEL_NAME = "gemma-3n-E4B-it-GGUF"
 EVALUATOR_TEMP = 0.1
-GENERATOR_TEMP = 1.4
-GENERATOR_ALT_TEMP = 0.7  # used when applying suggestions
+OPTIMIZER_TEMP = 1.4
+OPTIMIZER_ALT_TEMP = 0.7  # used when applying suggestions
 EVALUATOR_SEED = 727
 DEFAULT_N_ITERATIONS = 5
 MAX_N_ITERATIONS = 10
@@ -41,7 +41,7 @@ MAX_REFINEMENT_ITERATIONS = 5
 # provide up to MAX_N_ITERATIONS iterations worth of seeds
 SEEDS = [101, 202, 303, 404, 505, 606, 707, 808, 909, 1010]
 TIMEOUT = 240
-GENERATOR_SYSTEM_PROMPT = """You are a professional linguistic translator. Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from {SOURCE_LANG} to {TARGET_LANG}.
+OPTIMIZER_SYSTEM_PROMPT = """You are a professional linguistic translator. Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from {SOURCE_LANG} to {TARGET_LANG}.
 
 --- CORE PRINCIPLES ---
 1.  **Meaning and Nuance:** Translate the core meaning, intent, and nuance of the source text.
@@ -51,7 +51,7 @@ GENERATOR_SYSTEM_PROMPT = """You are a professional linguistic translator. Your 
 --- OUTPUT FORMAT ---
 Your response must contain ONLY the translated text. Do not include any introductory phrases or explanations.
 """
-GENERATOR_INIT_USER_PROMPT = """--- CONTEXT ---
+OPTIMIZER_INIT_USER_PROMPT = """--- CONTEXT ---
 Text type: {TEXT_TYPE}
 Source Language: {SOURCE_LANG}
 Target Language: {TARGET_LANG}
@@ -172,7 +172,7 @@ class State(TypedDict):
     max_attempt: int
     attempt: int
     last_attempt: TranslationAttempt
-    generator_seed: int
+    optimizer_seed: int
     evaluator_seed: int
     client: aiohttp.ClientSession
     csv_writer: csv.writer
@@ -236,13 +236,13 @@ async def handle_draft_state(state: State) -> None:
         state["max_attempt"],
     )
 
-    draft_prompt = GENERATOR_INIT_USER_PROMPT.format(
+    draft_prompt = OPTIMIZER_INIT_USER_PROMPT.format(
         SOURCE_TEXT=state["source_text"]["text"],
         SOURCE_LANG=state["source_text"]["source_lang"],
         TARGET_LANG=state["source_text"]["target_lang"],
         TEXT_TYPE=state["source_text"]["type"],
     )
-    system_prompt = GENERATOR_SYSTEM_PROMPT.format(
+    system_prompt = OPTIMIZER_SYSTEM_PROMPT.format(
         SOURCE_LANG=state["source_text"]["source_lang"],
         TARGET_LANG=state["source_text"]["target_lang"],
     )
@@ -252,8 +252,8 @@ async def handle_draft_state(state: State) -> None:
         args.model,
         draft_prompt,
         system_prompt,
-        GENERATOR_TEMP,
-        state["generator_seed"],
+        OPTIMIZER_TEMP,
+        state["optimizer_seed"],
         timeout=args.timeout,
     )
     state["last_attempt"] = {
@@ -311,9 +311,9 @@ async def handle_evaluation_state(state: State) -> None:
         (
             state["iteration_id"],
             state["attempt"],
-            state["generator_seed"],
+            state["optimizer_seed"],
             state["evaluator_seed"],
-            GENERATOR_TEMP,
+            OPTIMIZER_TEMP,
             EVALUATOR_TEMP,
             state["source_text"]["text"],
             last_attempt["translation"],
@@ -353,7 +353,7 @@ async def handle_refinement_state(state: State) -> None:
         SOURCE_LANG=state["source_text"]["source_lang"],
         TARGET_LANG=state["source_text"]["target_lang"],
     )
-    system_prompt = GENERATOR_SYSTEM_PROMPT.format(
+    system_prompt = OPTIMIZER_SYSTEM_PROMPT.format(
         SOURCE_LANG=state["source_text"]["source_lang"],
         TARGET_LANG=state["source_text"]["target_lang"],
     )
@@ -363,8 +363,8 @@ async def handle_refinement_state(state: State) -> None:
         args.model,
         refinement_prompt,
         system_prompt,
-        GENERATOR_ALT_TEMP,
-        state["generator_seed"],
+        OPTIMIZER_ALT_TEMP,
+        state["optimizer_seed"],
         timeout=args.timeout,
     )
     state["last_attempt"] = {
@@ -375,16 +375,14 @@ async def handle_refinement_state(state: State) -> None:
     }
 
 
-1
-
-
 async def main():
     LOGGER.info("Starting translation experiment...")
     input_files = [Path(p) for p in args.input.split(",")]
+    root = Path(__file__).parent
     output_files = [
         (
-            p.parent
-            / "generator_evaluator_attempts"
+            root
+            / "evaluator_optimizer_attempts"
             / f"{p.stem}_translated_{args.model}_attempt.csv"
         )
         for p in input_files
@@ -393,7 +391,7 @@ async def main():
     LOGGER.info("Model: %s", args.model)
     LOGGER.info("Iterations per seed: %d", args.iterations)
     LOGGER.info("Refinement iterations: %d", args.refinement_iterations)
-    LOGGER.info("Generator temperature: %f", GENERATOR_TEMP)
+    LOGGER.info("Optimizer temperature: %f", OPTIMIZER_TEMP)
     LOGGER.info("Evaluator temperature: %f", EVALUATOR_TEMP)
     LOGGER.info("Input files: %s", args.input)
 
@@ -420,15 +418,16 @@ async def main():
             LOGGER.info("Processing input file: %s", input_file)
             LOGGER.info("Output will be saved to: %s", output_file)
             try:
+                output_file.parent.mkdir(parents=True, exist_ok=True)
                 with output_file.open("w", newline="", encoding="utf-8") as csvfile:
                     csv_writer = csv.writer(csvfile)
                     csv_writer.writerow(
                         [
                             "iteration_id",
                             "attempt",
-                            "generator_seed",
+                            "optimizer_seed",
                             "evaluator_seed",
-                            "generator_temp",
+                            "optimizer_temp",
                             "evaluator_temp",
                             "source_text",
                             "translation_attempt",
@@ -469,7 +468,7 @@ async def main():
                                 max_attempt=args.refinement_iterations,
                                 attempt=0,
                                 last_attempt={},
-                                generator_seed=SEEDS[i],
+                                optimizer_seed=SEEDS[i],
                                 evaluator_seed=EVALUATOR_SEED,
                                 client=client,
                                 csv_writer=csv_writer,
