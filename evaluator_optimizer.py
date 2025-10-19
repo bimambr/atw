@@ -32,7 +32,6 @@ ENDPOINT = "http://localhost:8000/v1/chat/completions"
 MODEL_NAME = "gemma-3n-E4B-it-GGUF"
 EVALUATOR_TEMP = 0.1
 OPTIMIZER_TEMP = 1.4
-OPTIMIZER_ALT_TEMP = 0.7  # used when applying suggestions
 EVALUATOR_SEED = 727
 DEFAULT_N_ITERATIONS = 5
 MAX_N_ITERATIONS = 10
@@ -112,8 +111,7 @@ rubric-tonal-fidelity-kv ::= "\"tonal_fidelity\"" space ":" space boolean
 space ::= | " " | "\n"{1,2} [ \t]{0,20}
 string ::= "\"" char* "\"" space
 """
-JSON_FORMATTER_SYSTEM_PROMPT = """You are a highly efficient text-parsing robot. Your only function is to extract structured data from a given text and format it as a JSON object. You do not re-interpret, evaluate, or change the information. You only extract and format.
-"""
+JSON_FORMATTER_SYSTEM_PROMPT = """You are a highly efficient text-parsing robot. Your only function is to extract structured data from a given text and format it as a JSON object. You do not re-interpret, evaluate, or change the information. You only extract and format."""
 JSON_FORMATTER_USER_PROMPT = """Please parse the following evaluation text and convert it into a valid JSON object with three keys: "rubric" (an object with four boolean keys), "grade" (a string), and "feedback" (a string).
 
 --- TEXT TO PARSE ---
@@ -121,7 +119,7 @@ JSON_FORMATTER_USER_PROMPT = """Please parse the following evaluation text and c
 
 --- JSON OUTPUT ---
 """
-RETRY_PROMPT = """A previous translation attempt was evaluated and requires a complete rewrite. Your task is to deeply consider the editor's critique and generate a completely new version of the translation that addresses the identified problems.
+OPTIMIZER_RETRY_PROMPT = """A previous translation attempt was evaluated and requires a complete rewrite. Your task is to deeply consider the editor's critique and generate a completely new version of the translation that addresses the identified problems.
 
 **Start again from scratch, keeping the feedback in mind.**
 
@@ -224,33 +222,51 @@ parser.add_argument(
 args = parser.parse_args(namespace=CLIArgs())
 
 
-async def handle_draft_state(state: State) -> None:
+async def handle_optimization_state(state: State) -> None:
     state["next_state"] = "evaluation"
     state["attempt"] += 1
 
+    is_draft = state["attempt"] == 1
+
     LOGGER.info(
-        "Starting draft generation for iteration %d/%d, attempt %d/%d",
+        "Starting %s for iteration %d/%d, attempt %d/%d",
+        "draft generation" if is_draft else "refinement",
         state["iteration_id"],
         args.iterations,
         state["attempt"],
         state["max_attempt"],
     )
 
-    draft_prompt = OPTIMIZER_INIT_USER_PROMPT.format(
-        SOURCE_TEXT=state["source_text"]["text"],
-        SOURCE_LANG=state["source_text"]["source_lang"],
-        TARGET_LANG=state["source_text"]["target_lang"],
-        TEXT_TYPE=state["source_text"]["type"],
-    )
-    system_prompt = OPTIMIZER_SYSTEM_PROMPT.format(
-        SOURCE_LANG=state["source_text"]["source_lang"],
-        TARGET_LANG=state["source_text"]["target_lang"],
-    )
+    if is_draft:
+        prompt = OPTIMIZER_INIT_USER_PROMPT.format(
+            SOURCE_TEXT=state["source_text"]["text"],
+            SOURCE_LANG=state["source_text"]["source_lang"],
+            TARGET_LANG=state["source_text"]["target_lang"],
+            TEXT_TYPE=state["source_text"]["type"],
+        )
+        system_prompt = OPTIMIZER_SYSTEM_PROMPT.format(
+            SOURCE_LANG=state["source_text"]["source_lang"],
+            TARGET_LANG=state["source_text"]["target_lang"],
+        )
+    else:
+        last_attempt = state["last_attempt"]
+        prompt = OPTIMIZER_RETRY_PROMPT.format(
+            SOURCE_TEXT=state["source_text"]["text"],
+            FEEDBACK=last_attempt["feedback"],
+            TEXT_TYPE=state["source_text"]["type"],
+            SOURCE_LANG=state["source_text"]["source_lang"],
+            TARGET_LANG=state["source_text"]["target_lang"],
+        )
+        system_prompt = OPTIMIZER_SYSTEM_PROMPT.format(
+            SOURCE_LANG=state["source_text"]["source_lang"],
+            TARGET_LANG=state["source_text"]["target_lang"],
+        )
+
     draft_translation = await run_inference(
         state["client"],
         args.endpoint,
         args.model,
-        draft_prompt,
+        prompt,
         system_prompt,
         OPTIMIZER_TEMP,
         state["optimizer_seed"],
@@ -336,54 +352,12 @@ async def handle_evaluation_state(state: State) -> None:
         )
     )
 
-    state["next_state"] = "refinement"
+    state["next_state"] = "optimization"
     if (
         "acceptable" in last_attempt["grade"]
         or state["attempt"] >= state["max_attempt"]
     ):
-        state["next_state"] = "done"
-
-
-async def handle_refinement_state(state: State) -> None:
-    state["next_state"] = "evaluation"
-    state["attempt"] += 1
-
-    LOGGER.info(
-        "Starting refinement for iteration %d/%d, attempt %d/%d",
-        state["iteration_id"],
-        args.iterations,
-        state["attempt"],
-        state["max_attempt"],
-    )
-
-    last_attempt = state["last_attempt"]
-    refinement_prompt = RETRY_PROMPT.format(
-        SOURCE_TEXT=state["source_text"]["text"],
-        FEEDBACK=last_attempt["feedback"],
-        TEXT_TYPE=state["source_text"]["type"],
-        SOURCE_LANG=state["source_text"]["source_lang"],
-        TARGET_LANG=state["source_text"]["target_lang"],
-    )
-    system_prompt = OPTIMIZER_SYSTEM_PROMPT.format(
-        SOURCE_LANG=state["source_text"]["source_lang"],
-        TARGET_LANG=state["source_text"]["target_lang"],
-    )
-    refinement_translation = await run_inference(
-        state["client"],
-        args.endpoint,
-        args.model,
-        refinement_prompt,
-        system_prompt,
-        OPTIMIZER_ALT_TEMP,
-        state["optimizer_seed"],
-        timeout=args.timeout,
-    )
-    state["last_attempt"] = {
-        "translation": refinement_translation,
-        "rubric": {},
-        "grade": "",
-        "feedback": "",
-    }
+        state["next_state"] = ""
 
 
 async def main():
@@ -410,9 +384,8 @@ async def main():
     signal.signal(signal.SIGINT, lambda *_args: signal_handler(event))
 
     state_handlers = {
-        "draft": handle_draft_state,
+        "optimization": handle_optimization_state,
         "evaluation": handle_evaluation_state,
-        "refinement": handle_refinement_state,
     }
 
     async with aiohttp.ClientSession() as client:
@@ -475,7 +448,7 @@ async def main():
                             state = State(
                                 iteration_id=iteration_num,
                                 source_text=source_text,
-                                next_state="draft",
+                                next_state="optimization",
                                 max_attempt=args.refinement_iterations,
                                 attempt=0,
                                 last_attempt={},
