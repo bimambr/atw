@@ -36,3 +36,4 @@ Your entire output must follow this structure.
 - added --simple-evaluator and --simulate-thinking at attempt 8
 - attempt 9: decreased evaluator temp to 0.7 and increased optimizer temp to 1.03 (draft generation temp remains 1.4)
 - attempt 10: increment evaluator seed by 1 for each attempt.
+- attempt 14: min-p=0.0 top-k=64 top-p=0.95 repeating-penalty=1.0 (1.0 means disabled in llama.cpp)
