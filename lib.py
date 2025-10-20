@@ -150,6 +150,7 @@ class CLIArgs(argparse.Namespace):
     simulate_thinking: bool
     simple_evaluator: bool
     cache_prompt: bool
+    omit_roles: bool
 
 
 def get_parsed_args() -> CLIArgs:
@@ -204,5 +205,11 @@ def get_parsed_args() -> CLIArgs:
         action="store_true",
         default=False,
         help="Cache the prompt for faster subsequent requests",
+    )
+    parser.add_argument(
+        "--omit-roles",
+        action="store_true",
+        default=False,
+        help="Omit roles in system prompts",
     )
     return parser.parse_args(namespace=CLIArgs)

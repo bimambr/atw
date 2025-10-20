@@ -41,7 +41,9 @@ OPTIMIZER_ALT_TEMP = 0.5
 EVALUATOR_SEED = 727
 SEEDS = [101, 202, 303, 404, 505, 606, 707, 808, 909, 1010]
 ARGS = get_parsed_args()
-OPTIMIZER_SYSTEM_PROMPT = f"""You are a professional linguistic translator. Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from {{SOURCE_LANG}} to {{TARGET_LANG}}.
+OPTIMIZER_SYSTEM_PROMPT = f"""{
+    "You are a professional linguistic translator. " * (not ARGS.omit_roles)
+}Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from {{SOURCE_LANG}} to {{TARGET_LANG}}.
 
 --- REQUIREMENTS ---
 1.  Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in {{TARGET_LANG}} to best convey the original meaning.
@@ -71,7 +73,7 @@ Target Language: {TARGET_LANG}
 --- TASK ---
 Provide the translation in {TARGET_LANG}:
 """
-EVALUATOR_COMPLEX_SYSTEM_PROMPT = """You are a Quality Assurance Gatekeeper for a prestigious publishing house. Your sole purpose is to protect the company's reputation by rejecting any translation that is not of the absolute highest quality. You are known for being extremely strict, fair, and having an eye for detail.
+EVALUATOR_COMPLEX_SYSTEM_PROMPT = f"""{"You are a Quality Assurance Gatekeeper for a prestigious publishing house. Your sole purpose is to protect the company's reputation by rejecting any translation that is not of the absolute highest quality. " * (not ARGS.omit_roles)}You are known for being extremely strict, fair, and having an eye for detail.
 
 --- MANDATORY EVALUATION RUBRIC ---
 You MUST first evaluate the translation against the following four criteria. For each criterion, you must assign a grade of **PASS** or **FAIL**.
@@ -91,7 +93,7 @@ Your entire response MUST follow this structure in this exact order:
 --- CRUCIAL RULE ---
 If even ONE criterion in your scorecard is marked as **FAIL**, the final grade MUST be `needs_revision`. You can only give a grade of `acceptable` if all four criteria are a **PASS**.
 """
-EVALUATOR_SIMPLE_SYSTEM_PROMPT = """You are a meticulous and highly critical linguistic editor tasked with evaluating translations. Your goal is to ensure that every translation meets the highest standards of quality.
+EVALUATOR_SIMPLE_SYSTEM_PROMPT = f"""{"You are a meticulous and highly critical linguistic editor tasked with evaluating translations. " * (not ARGS.omit_roles)}Your goal is to ensure that every translation meets the highest standards of quality.
 
 --- REQUIREMENTS ---
 1. The translation must be faithful to the original text in meaning, tone, and style.
@@ -101,7 +103,7 @@ EVALUATOR_SIMPLE_SYSTEM_PROMPT = """You are a meticulous and highly critical lin
 --- OUTPUT FORMAT ---
 Your response must include the following sections in order:
 1. Respond only with "acceptable" if you find the translation meets all quality standards, free of even minor issues. If you find any problems, no matter how small, you must not respond with "acceptable".
-2. Otherwise, respond with "needs_revision", followed by a comprehensive feedback on how to improve the translation, including specific examples and their alternatives for improvement. If you find a phrase with multiple meanings depending on the context, explore all the possible meanings and decide which one is likely to be correct. Do not use any formatting for emphasis in your feedback, but you may use it for loanwords or other non-native terms, or to preserve the original formatting in the source text.
+2. Otherwise, respond with "needs_revision", followed by a comprehensive feedback on how to improve the translation, including specific examples and their alternatives for improvement. If you find a phrase with multiple meanings depending on the context, explore all the possible meanings in differing contexts for the translator to decide.
 """
 EVALUATOR_USER_PROMPT = """--- CONTEXT ---
 Text type: {TEXT_TYPE}
