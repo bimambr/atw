@@ -99,11 +99,15 @@ EVALUATOR_SIMPLE_SYSTEM_PROMPT = f"""{"You are a meticulous and highly critical 
 1. The translation must be faithful to the original text in meaning, tone, and style.
 2. The translation must read naturally in the target language.
 3. You must provide constructive feedback highlighting any issues or areas for improvement.
+4. Do not sugarcoat your assessment; be direct and precise.
 
 --- OUTPUT FORMAT ---
 Your response must include the following sections in order:
-1. Respond only with "acceptable" if you find the translation meets all quality standards, free of even minor issues. If you find any problems, no matter how small, you must not respond with "acceptable".
-2. Otherwise, respond with "needs_revision", followed by a comprehensive feedback on how to improve the translation, including specific examples and their alternatives for improvement. If you find a phrase with multiple meanings depending on the context, explore all the possible meanings in differing contexts for the translator to decide.
+1. Analyse the tone, style, and meaning of the source text under the `--- ANALYSIS ---`.
+2. Evaluate the translation attempt against the source text under the `--- EVALUATION ---`.
+3. Provide your final assessment under the `--- VERDICT ---` header, without the subticks:
+    - Respond only with "acceptable" if you find the translation meets all quality standards, free of ANY issues.
+    - Otherwise, respond with "needs_revision", followed by a comprehensive feedback on how to improve the translation and maintain the meaning, tone, and style of its original source text. Give specific examples for each problematic phrase. If you find a phrase with multiple meanings depending on the context, explore all the possible meanings in differing contexts for the translator to decide. Do not emphasize your changes with formatting.
 """
 EVALUATOR_USER_PROMPT = """--- CONTEXT ---
 Text type: {TEXT_TYPE}
@@ -116,8 +120,7 @@ Target Language: {TARGET_LANG}
 --- TRANSLATION TO EVALUATE ---
 {TRANSLATION_ATTEMPT}
 
---- TASK ---
-Provide your grade and critique:
+--- OUTPUT ---
 """
 # https://github.com/ggml-org/llama.cpp/tree/master/grammars
 EVALUATOR_JSON_GRAMMAR = r"""boolean ::= ("true" | "false") space
@@ -194,6 +197,10 @@ class TranslationAttempt(TypedDict):
     rubric: Rubric
     grade: str
     feedback: str
+    prompt: str
+    system_prompt: str
+    seed: int
+    temp: float
 
 
 class SourceTextEntry(TypedDict):
@@ -201,6 +208,7 @@ class SourceTextEntry(TypedDict):
     target_lang: str
     text: str
     type: str
+    id: int
 
 
 class State(TypedDict):
@@ -222,8 +230,9 @@ async def handle_optimization_state(state: State) -> None:
     is_draft = state["attempt"] == 1
 
     LOGGER.info(
-        "Starting %s for iteration %d/%d, attempt %d/%d",
+        "Starting %s for text %d, iteration %d/%d, attempt %d/%d",
         "draft generation" if is_draft else "refinement",
+        state["source_text"]["id"],
         state["iteration_id"],
         ARGS.iterations,
         state["attempt"],
@@ -257,14 +266,16 @@ async def handle_optimization_state(state: State) -> None:
         )
         state["next_state"] = "verification"
 
+    temp = OPTIMIZER_TEMP if is_draft else OPTIMIZER_ALT_TEMP
+    seed = state["optimizer_seed"] * 10 + state["attempt"]
     translation = await run_inference(
         state["client"],
         ARGS.endpoint,
         ARGS.model,
         prompt,
         system_prompt,
-        OPTIMIZER_TEMP if is_draft else OPTIMIZER_ALT_TEMP,
-        state["optimizer_seed"],
+        temp,
+        seed,
         timeout=ARGS.timeout,
         cache_prompt=ARGS.cache_prompt,
     )
@@ -280,11 +291,16 @@ async def handle_optimization_state(state: State) -> None:
             translation = translation[match.end() :].strip()
 
     state["last_attempt"]["translation"] = translation
+    state["last_attempt"]["prompt"] = prompt
+    state["last_attempt"]["system_prompt"] = system_prompt
+    state["last_attempt"]["seed"] = seed
+    state["last_attempt"]["temp"] = temp
 
 
 async def handle_evaluation_state(state: State) -> None:
     LOGGER.info(
-        "Starting evaluation for iteration %d/%d, attempt %d/%d",
+        "Starting evaluation for text %d, iteration %d/%d, attempt %d/%d",
+        state["source_text"]["id"],
         state["iteration_id"],
         ARGS.iterations,
         state["attempt"],
@@ -293,7 +309,12 @@ async def handle_evaluation_state(state: State) -> None:
     # do not mutate the original evaluator seed
     seed = state["evaluator_seed"] + state["iteration_id"] * 100
     last_attempt = state["last_attempt"]
-    evaluation_prompt = EVALUATOR_USER_PROMPT.format(
+    system_prompt = (
+        EVALUATOR_SIMPLE_SYSTEM_PROMPT
+        if ARGS.simple_evaluator
+        else EVALUATOR_COMPLEX_SYSTEM_PROMPT
+    )
+    prompt = EVALUATOR_USER_PROMPT.format(
         SOURCE_TEXT=state["source_text"]["text"],
         SOURCE_LANG=state["source_text"]["source_lang"],
         TARGET_LANG=state["source_text"]["target_lang"],
@@ -304,17 +325,28 @@ async def handle_evaluation_state(state: State) -> None:
         state["client"],
         ARGS.endpoint,
         ARGS.model,
-        evaluation_prompt,
-        EVALUATOR_SIMPLE_SYSTEM_PROMPT
-        if ARGS.simple_evaluator
-        else EVALUATOR_COMPLEX_SYSTEM_PROMPT,
+        prompt,
+        system_prompt,
         EVALUATOR_TEMP,
         seed,
         timeout=ARGS.timeout,
         cache_prompt=ARGS.cache_prompt,
     )
 
-    if not ARGS.simple_evaluator:
+    if ARGS.simple_evaluator:
+        if not (
+            match := re.search(r"--- VERDICT ---\s*:?", free_form_output, re.IGNORECASE)
+        ):
+            last_attempt["rubric"] = {}
+            last_attempt["grade"] = "N/A"
+            last_attempt["feedback"] = "Failed to find verdict section."
+        else:
+            verdict = free_form_output[match.end() :].strip()
+            grade = verdict.split(maxsplit=1)[0].strip().lower()
+            last_attempt["grade"] = grade
+            last_attempt["feedback"] = free_form_output.strip()
+            last_attempt["rubric"] = {}
+    else:
         json_formatter_prompt = JSON_FORMATTER_USER_PROMPT.format(
             EVALUATION_TEXT=free_form_output
         )
@@ -346,26 +378,27 @@ async def handle_evaluation_state(state: State) -> None:
             }
             last_attempt["grade"] = "N/A"
             last_attempt["feedback"] = "Failed to parse evaluator output."
-    else:
-        grade = free_form_output.split(maxsplit=1)[0].strip().lower()
-        last_attempt["grade"] = grade
-        last_attempt["feedback"] = free_form_output[len(grade) :].strip()
-        last_attempt["rubric"] = {}
 
     state["csv_writer"].writerow(
         (
+            state["source_text"]["id"],
             state["iteration_id"],
             state["attempt"],
-            state["optimizer_seed"],
+            state["last_attempt"]["seed"],
+            state["last_attempt"]["temp"],
             seed,
-            OPTIMIZER_TEMP,
             EVALUATOR_TEMP,
             state["source_text"]["text"],
             last_attempt["translation"],
-            "\n".join(f"{k}: {v}" for k, v in last_attempt["rubric"].items()),
+            "evaluator",
+            "\n".join(f"{k}: {v}" for k, v in last_attempt["rubric"].items()) or "N/A",
             last_attempt["grade"],
             last_attempt["feedback"],
             time.ctime(),
+            last_attempt["system_prompt"],
+            last_attempt["prompt"],
+            system_prompt,
+            prompt,
         )
     )
 
@@ -379,13 +412,15 @@ async def handle_evaluation_state(state: State) -> None:
 
 async def handle_verification_state(state: State) -> None:
     LOGGER.info(
-        "Starting verification for iteration %d/%d, attempt %d/%d",
+        "Starting verification for text %d, iteration %d/%d, attempt %d/%d",
+        state["source_text"]["id"],
         state["iteration_id"],
         ARGS.iterations,
         state["attempt"],
         state["max_attempt"],
     )
     last_attempt = state["last_attempt"]
+    temp = 0.0
     # do not mutate the original evaluator seed
     seed = state["evaluator_seed"] + state["iteration_id"] * 200 + state["attempt"]
     verification_prompt = VERIFIER_USER_PROMPT.format(
@@ -398,7 +433,7 @@ async def handle_verification_state(state: State) -> None:
         ARGS.model,
         verification_prompt,
         VERIFIER_SYSTEM_PROMPT,
-        temperature=0.0,
+        temperature=temp,
         seed=seed,
         timeout=ARGS.timeout,
         cache_prompt=ARGS.cache_prompt,
@@ -411,18 +446,24 @@ async def handle_verification_state(state: State) -> None:
     )
     state["csv_writer"].writerow(
         (
+            state["source_text"]["id"],
             state["iteration_id"],
             state["attempt"],
-            state["optimizer_seed"],
+            state["last_attempt"]["seed"],
+            state["last_attempt"]["temp"],
             seed,
-            OPTIMIZER_TEMP,
-            EVALUATOR_TEMP,
+            temp,
             state["source_text"]["text"],
             last_attempt["translation"],
-            "\n".join(f"{k}: {v}" for k, v in last_attempt["rubric"].items()),
+            "verifier",
+            "N/A",
             verification_result,
-            "...",
+            "N/A",
             time.ctime(),
+            last_attempt["system_prompt"],
+            last_attempt["prompt"],
+            VERIFIER_SYSTEM_PROMPT,
+            verification_prompt,
         )
     )
     # this will either get overridden by the next iteration
@@ -480,18 +521,24 @@ async def main():
                     csv_writer = csv.writer(csvfile)
                     csv_writer.writerow(
                         [
+                            "text_id",
                             "iteration_id",
                             "attempt",
                             "optimizer_seed",
-                            "evaluator_seed",
                             "optimizer_temp",
+                            "evaluator_seed",
                             "evaluator_temp",
                             "source_text",
                             "translation_attempt",
+                            "evaluator_type",
                             "rubric",
                             "grade",
                             "feedback",
                             "timestamp",
+                            "optimizer_system_prompt",
+                            "optimizer_user_prompt",
+                            "evaluator_system_prompt",
+                            "evaluator_user_prompt",
                         ]
                     )
 
@@ -508,6 +555,7 @@ async def main():
                             "target_lang": input_json["target_lang"],
                             "text": text,
                             "type": input_json.get("type", "general"),
+                            "id": text_idx + 1,
                         }
 
                         for i in range(ARGS.iterations):
