@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 import json
 import logging
@@ -15,6 +16,41 @@ T = TypeVar("T")
 class Bail(Exception): ...
 
 
+ENDPOINT = "http://localhost:8000/v1/chat/completions"
+MODEL_NAME = "gemma-3n-E4B-it-GGUF"
+DEFAULT_N_ITERATIONS = 5
+MAX_N_ITERATIONS = 10
+DEFAULT_REFINEMENT_ITERATIONS = 3
+MAX_REFINEMENT_ITERATIONS = 5
+# provide up to MAX_N_ITERATIONS iterations worth of seeds
+TIMEOUT = 240
+
+
+async def stream_response(response: aiohttp.ClientResponse) -> str:
+    json_data = ""
+    full_response = ""
+    LOGGER.info("Streaming response...")
+    async for line in response.content:
+        decoded_line = line.decode("utf-8").strip()
+        if not decoded_line.startswith("data: "):
+            continue
+        data = decoded_line[len("data: ") :].strip()
+        if data == "[DONE]":
+            break
+        try:
+            json_data = json.loads(data)
+            chunk = (
+                json_data.get("choices", [{}])[0].get("delta", {}).get("content")
+            ) or ""
+            full_response += chunk
+            print(chunk, end="", flush=True)
+        except json.JSONDecodeError:
+            LOGGER.error("Failed to decode JSON chunk: %s", data)
+
+    LOGGER.info("Completed streaming response. Last chunk: %s", json_data)
+    return full_response.strip()
+
+
 async def run_inference(
     client: aiohttp.ClientSession,
     endpoint: str,
@@ -25,39 +61,28 @@ async def run_inference(
     seed: int,
     timeout: int,
     grammar: str | None = None,
+    cache_prompt: bool = False,
 ) -> str:
     LOGGER.info("Hitting %s with temp=%f, seed=%d", endpoint, temperature, seed)
     try:
         payload = {
             "model": model,
-            "stream": False,
+            "stream": True,
             "temperature": temperature,
             "seed": seed,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ],
-            "cache_prompt": False,
+            "cache_prompt": cache_prompt,
         }
 
         if grammar is not None:
             payload["grammar"] = grammar
 
         async with client.post(endpoint, json=payload, timeout=timeout) as response:
-            LOGGER.info(
-                "Received response with status code: %d, data: %s",
-                response.status,
-                await response.text(),
-            )
             response.raise_for_status()
-            full_response = (
-                (await response.json())
-                .get("choices", [{}])[0]
-                .get("message", {})
-                .get("content", "")
-                .strip()
-            )
-            return full_response
+            return await stream_response(response)
     except aiohttp.ClientError as e:
         LOGGER.error("API request failed: %s", e, exc_info=e)
         return "API request failed"
@@ -113,3 +138,71 @@ def get_next_available_path(path: Path) -> Path:
 
     next_index = max_index + 1
     return parent / f"{stem}_{next_index}{suffix}"
+
+
+class CLIArgs(argparse.Namespace):
+    endpoint: str
+    model: str
+    iterations: int
+    input: str
+    timeout: int
+    refinement_iterations: int
+    simulate_thinking: bool
+    simple_evaluator: bool
+    cache_prompt: bool
+
+
+def get_parsed_args() -> CLIArgs:
+    parser = argparse.ArgumentParser(description="llama.cpp Translation Experiment")
+    parser.add_argument(
+        "--endpoint",
+        default=ENDPOINT,
+        help=f"OpenAI-like API endpoint URL (default: {ENDPOINT})",
+    )
+    parser.add_argument(
+        "--model",
+        default=MODEL_NAME,
+        help=f"Model name to use (default: {MODEL_NAME})",
+    )
+    parser.add_argument(
+        "--iterations",
+        type=lambda x: min(int(x), MAX_N_ITERATIONS),
+        default=DEFAULT_N_ITERATIONS,
+        help=f"Number of iterations per temperature (default: {DEFAULT_N_ITERATIONS}, cap: {MAX_N_ITERATIONS})",
+    )
+    parser.add_argument(
+        "--refinement-iterations",
+        type=lambda x: min(int(x), MAX_REFINEMENT_ITERATIONS),
+        default=DEFAULT_REFINEMENT_ITERATIONS,
+        help=f"Number of refinement iterations (default: {DEFAULT_REFINEMENT_ITERATIONS}, cap: {MAX_REFINEMENT_ITERATIONS})",
+    )
+    parser.add_argument(
+        "--input",
+        required=True,
+        help="Path to the input JSON file(s) containing the source text to translate. Use `,` to separate multiple files",
+    )
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=TIMEOUT,
+        help=f"Timeout for API requests in seconds (default: {TIMEOUT})",
+    )
+    parser.add_argument(
+        "--simulate-thinking",
+        action="store_true",
+        default=False,
+        help="Simulate 'thinking' time by asking the model to analyse the text before attempting translation",
+    )
+    parser.add_argument(
+        "--simple-evaluator",
+        action="store_true",
+        default=False,
+        help="Use a simpler evaluation prompt",
+    )
+    parser.add_argument(
+        "--cache-prompt",
+        action="store_true",
+        default=False,
+        help="Cache the prompt for faster subsequent requests",
+    )
+    return parser.parse_args(namespace=CLIArgs)

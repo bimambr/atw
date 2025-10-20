@@ -14,11 +14,11 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRA
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-import argparse
 import asyncio
 import csv
 import json
 import logging
+import re
 import signal
 import time
 from pathlib import Path
@@ -26,29 +26,39 @@ from typing import TypedDict
 
 import aiohttp
 
-from lib import Bail, get_next_available_path, run_inference, signal_handler, wait
+from lib import (
+    Bail,
+    get_next_available_path,
+    get_parsed_args,
+    run_inference,
+    signal_handler,
+    wait,
+)
 
-ENDPOINT = "http://localhost:8000/v1/chat/completions"
-MODEL_NAME = "gemma-3n-E4B-it-GGUF"
-EVALUATOR_TEMP = 0.1
+EVALUATOR_TEMP = 0.7
 OPTIMIZER_TEMP = 1.4
+OPTIMIZER_ALT_TEMP = 0.5
 EVALUATOR_SEED = 727
-DEFAULT_N_ITERATIONS = 5
-MAX_N_ITERATIONS = 10
-DEFAULT_REFINEMENT_ITERATIONS = 3
-MAX_REFINEMENT_ITERATIONS = 5
-# provide up to MAX_N_ITERATIONS iterations worth of seeds
 SEEDS = [101, 202, 303, 404, 505, 606, 707, 808, 909, 1010]
-TIMEOUT = 240
-OPTIMIZER_SYSTEM_PROMPT = """You are a professional linguistic translator. Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from {SOURCE_LANG} to {TARGET_LANG}.
+ARGS = get_parsed_args()
+OPTIMIZER_SYSTEM_PROMPT = f"""You are a professional linguistic translator. Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from {{SOURCE_LANG}} to {{TARGET_LANG}}.
 
---- CORE PRINCIPLES ---
-1.  **Meaning and Nuance:** Translate the core meaning, intent, and nuance of the source text.
-2.  **Tone and Register:** Match the tone of the source text (e.g., formal, literary, technical).
-3.  **Fluency:** The final translation must read naturally in the {TARGET_LANG}.
+--- REQUIREMENTS ---
+1.  Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in {{TARGET_LANG}} to best convey the original meaning.
+2.  Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
+3.  The final translation must read naturally in the {{TARGET_LANG}}. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
 
 --- OUTPUT FORMAT ---
-Your response must contain ONLY the translated text. Do not include any introductory phrases or explanations.
+{
+    '''
+The output is divided under two headers with the following structure:
+1.  --- ANALYSIS ---: You must first provide a detailed analysis of each sentence/phrase in the source text, highlighting potential challenges and methods you will use to address them in your translation.
+2.  --- FINAL TRANSLATION ---: Implement your analysis, providing the clean, final translation in {{TARGET_LANG}}. Your output must be only the clean, final text.
+    '''
+    if ARGS.simulate_thinking
+    else "The output is the clean, final translation in {{TARGET_LANG}}. You must not include any additional commentary or analysis."
+}
+
 """
 OPTIMIZER_INIT_USER_PROMPT = """--- CONTEXT ---
 Text type: {TEXT_TYPE}
@@ -61,7 +71,7 @@ Target Language: {TARGET_LANG}
 --- TASK ---
 Provide the translation in {TARGET_LANG}:
 """
-EVALUATOR_SYSTEM_PROMPT = """You are a Quality Assurance Gatekeeper for a prestigious publishing house. Your sole purpose is to protect the company's reputation by rejecting any translation that is not of the absolute highest quality. You are known for being extremely strict, fair, and having an eye for detail.
+EVALUATOR_COMPLEX_SYSTEM_PROMPT = """You are a Quality Assurance Gatekeeper for a prestigious publishing house. Your sole purpose is to protect the company's reputation by rejecting any translation that is not of the absolute highest quality. You are known for being extremely strict, fair, and having an eye for detail.
 
 --- MANDATORY EVALUATION RUBRIC ---
 You MUST first evaluate the translation against the following four criteria. For each criterion, you must assign a grade of **PASS** or **FAIL**.
@@ -81,6 +91,18 @@ Your entire response MUST follow this structure in this exact order:
 --- CRUCIAL RULE ---
 If even ONE criterion in your scorecard is marked as **FAIL**, the final grade MUST be `needs_revision`. You can only give a grade of `acceptable` if all four criteria are a **PASS**.
 """
+EVALUATOR_SIMPLE_SYSTEM_PROMPT = """You are a meticulous and highly critical linguistic editor tasked with evaluating translations. Your goal is to ensure that every translation meets the highest standards of quality.
+
+--- REQUIREMENTS ---
+1. The translation must be faithful to the original text in meaning, tone, and style.
+2. The translation must read naturally in the target language.
+3. You must provide constructive feedback highlighting any issues or areas for improvement.
+
+--- OUTPUT FORMAT ---
+Your response must include the following sections in order:
+1. Respond only with "acceptable" if you find the translation meets all quality standards, free of even minor issues. If you find any problems, no matter how small, you must not respond with "acceptable".
+2. Otherwise, respond with "needs_revision", followed by a comprehensive feedback on how to improve the translation, including specific examples and their alternatives for improvement. If you find a phrase with multiple meanings depending on the context, explore all the possible meanings and decide which one is likely to be correct. Do not use any formatting for emphasis in your feedback, but you may use it for loanwords or other non-native terms, or to preserve the original formatting in the source text.
+"""
 EVALUATOR_USER_PROMPT = """--- CONTEXT ---
 Text type: {TEXT_TYPE}
 Source Language: {SOURCE_LANG}
@@ -93,7 +115,7 @@ Target Language: {TARGET_LANG}
 {TRANSLATION_ATTEMPT}
 
 --- TASK ---
-Provide your grade and critique based on your system instructions.
+Provide your grade and critique:
 """
 # https://github.com/ggml-org/llama.cpp/tree/master/grammars
 EVALUATOR_JSON_GRAMMAR = r"""boolean ::= ("true" | "false") space
@@ -119,9 +141,9 @@ JSON_FORMATTER_USER_PROMPT = """Please parse the following evaluation text and c
 
 --- JSON OUTPUT ---
 """
-OPTIMIZER_RETRY_PROMPT = """A previous translation attempt was evaluated and requires a complete rewrite. Your task is to deeply consider the editor's critique and generate a completely new version of the translation that addresses the identified problems.
+OPTIMIZER_RETRY_PROMPT = """A previous translation attempt was evaluated and requires a complete rewrite. Your task is to deeply consider the editor's feedback and generate a completely new version of the translation that addresses the identified problems.
 
-**Start again from scratch, keeping the feedback in mind.**
+Start again from scratch, keeping the feedback in mind.
 
 --- CONTEXT ---
 Text type: {TEXT_TYPE}
@@ -131,11 +153,27 @@ Target Language: {TARGET_LANG}
 --- SOURCE TEXT ---
 {SOURCE_TEXT}
 
---- EDITOR'S CRITIQUE TO ADDRESS ---
+--- EDITOR'S FEEDBACK ---
 {FEEDBACK}
 
 --- FINAL TASK ---
-Generate a new, final, and improved translation in {TARGET_LANG}. Your output must be only the clean, final text.
+Generate a new, final, and improved translation in {TARGET_LANG}:
+"""
+VERIFIER_SYSTEM_PROMPT = """You are a robotic and literal Quality Assurance Verifier. Your only function is to check if a revised text has correctly implemented a set of required changes. You do not have opinions or creative ideas.
+
+--- REQUIRED OUTPUT ---
+Your entire response must be a single word: `pass` or `fail`.
+-   Output `pass` if the New Translation successfully fixed the problems described in the Original Critique.
+-   Output `fail` if it did not.
+"""
+VERIFIER_USER_PROMPT = """--- ORIGINAL CRITIQUE (The Requirements) ---
+{ORIGINAL_FEEDBACK}
+
+--- NEW TRANSLATION (The Implementation) ---
+{NEW_TRANSLATION_ATTEMPT}
+
+--- TASK ---
+Did the New Translation successfully implement the changes described in the Original Critique? Respond with only `pass` or `fail`.
 """
 
 LOGGER = logging.getLogger(__name__)
@@ -176,54 +214,7 @@ class State(TypedDict):
     csv_writer: csv.writer
 
 
-class CLIArgs(argparse.Namespace):
-    endpoint: str
-    model: str
-    iterations: int
-    input: str
-    timeout: int
-    refinement_iterations: int
-
-
-parser = argparse.ArgumentParser(description="llama.cpp Translation Experiment")
-parser.add_argument(
-    "--endpoint",
-    default=ENDPOINT,
-    help=f"OpenAI-like API endpoint URL (default: {ENDPOINT})",
-)
-parser.add_argument(
-    "--model",
-    default=MODEL_NAME,
-    help=f"Model name to use (default: {MODEL_NAME})",
-)
-parser.add_argument(
-    "--iterations",
-    type=lambda x: min(int(x), MAX_N_ITERATIONS),
-    default=DEFAULT_N_ITERATIONS,
-    help=f"Number of iterations per temperature (default: {DEFAULT_N_ITERATIONS}, cap: {MAX_N_ITERATIONS})",
-)
-parser.add_argument(
-    "--refinement-iterations",
-    type=lambda x: min(int(x), MAX_REFINEMENT_ITERATIONS),
-    default=DEFAULT_REFINEMENT_ITERATIONS,
-    help=f"Number of refinement iterations (default: {DEFAULT_REFINEMENT_ITERATIONS}, cap: {MAX_REFINEMENT_ITERATIONS})",
-)
-parser.add_argument(
-    "--input",
-    required=True,
-    help="Path to the input JSON file(s) containing the source text to translate. Use `,` to separate multiple files",
-)
-parser.add_argument(
-    "--timeout",
-    type=int,
-    default=TIMEOUT,
-    help=f"Timeout for API requests in seconds (default: {TIMEOUT})",
-)
-args = parser.parse_args(namespace=CLIArgs())
-
-
 async def handle_optimization_state(state: State) -> None:
-    state["next_state"] = "evaluation"
     state["attempt"] += 1
 
     is_draft = state["attempt"] == 1
@@ -232,7 +223,7 @@ async def handle_optimization_state(state: State) -> None:
         "Starting %s for iteration %d/%d, attempt %d/%d",
         "draft generation" if is_draft else "refinement",
         state["iteration_id"],
-        args.iterations,
+        ARGS.iterations,
         state["attempt"],
         state["max_attempt"],
     )
@@ -248,6 +239,7 @@ async def handle_optimization_state(state: State) -> None:
             SOURCE_LANG=state["source_text"]["source_lang"],
             TARGET_LANG=state["source_text"]["target_lang"],
         )
+        state["next_state"] = "evaluation"
     else:
         last_attempt = state["last_attempt"]
         prompt = OPTIMIZER_RETRY_PROMPT.format(
@@ -261,33 +253,43 @@ async def handle_optimization_state(state: State) -> None:
             SOURCE_LANG=state["source_text"]["source_lang"],
             TARGET_LANG=state["source_text"]["target_lang"],
         )
+        state["next_state"] = "verification"
 
-    draft_translation = await run_inference(
+    translation = await run_inference(
         state["client"],
-        args.endpoint,
-        args.model,
+        ARGS.endpoint,
+        ARGS.model,
         prompt,
         system_prompt,
-        OPTIMIZER_TEMP,
+        OPTIMIZER_TEMP if is_draft else OPTIMIZER_ALT_TEMP,
         state["optimizer_seed"],
-        timeout=args.timeout,
+        timeout=ARGS.timeout,
+        cache_prompt=ARGS.cache_prompt,
     )
-    state["last_attempt"] = {
-        "translation": draft_translation,
-        "rubric": {},
-        "grade": "",
-        "feedback": "",
-    }
+
+    if ARGS.simulate_thinking:
+        match = re.search("--- FINAL TRANSLATION ---\s*:?", translation, re.IGNORECASE)
+        if not match:
+            LOGGER.error(
+                "Could not find final translation section in output: %s", translation
+            )
+            translation = "Parsing error"
+        else:
+            translation = translation[match.end() :].strip()
+
+    state["last_attempt"]["translation"] = translation
 
 
 async def handle_evaluation_state(state: State) -> None:
     LOGGER.info(
         "Starting evaluation for iteration %d/%d, attempt %d/%d",
         state["iteration_id"],
-        args.iterations,
+        ARGS.iterations,
         state["attempt"],
         state["max_attempt"],
     )
+    # do not mutate the original evaluator seed
+    seed = state["evaluator_seed"] + state["iteration_id"] * 100
     last_attempt = state["last_attempt"]
     evaluation_prompt = EVALUATOR_USER_PROMPT.format(
         SOURCE_TEXT=state["source_text"]["text"],
@@ -298,49 +300,62 @@ async def handle_evaluation_state(state: State) -> None:
     )
     free_form_output = await run_inference(
         state["client"],
-        args.endpoint,
-        args.model,
+        ARGS.endpoint,
+        ARGS.model,
         evaluation_prompt,
-        EVALUATOR_SYSTEM_PROMPT,
+        EVALUATOR_SIMPLE_SYSTEM_PROMPT
+        if ARGS.simple_evaluator
+        else EVALUATOR_COMPLEX_SYSTEM_PROMPT,
         EVALUATOR_TEMP,
-        state["evaluator_seed"],
-        timeout=args.timeout,
-    )
-    json_formatter_prompt = JSON_FORMATTER_USER_PROMPT.format(
-        EVALUATION_TEXT=free_form_output
-    )
-    json_output_str = await run_inference(
-        state["client"],
-        args.endpoint,
-        args.model,
-        json_formatter_prompt,
-        JSON_FORMATTER_SYSTEM_PROMPT,
-        temperature=0.0,
-        seed=1,
-        timeout=args.timeout,
-        grammar=EVALUATOR_JSON_GRAMMAR,
+        seed,
+        timeout=ARGS.timeout,
+        cache_prompt=ARGS.cache_prompt,
     )
 
-    try:
-        json_output = json.loads(json_output_str)
-        last_attempt.update(json_output)
-    except json.JSONDecodeError:
-        LOGGER.error("Failed to parse JSON from evaluator output: %s", json_output_str)
-        last_attempt["rubric"] = {
-            "semantic_accuracy": False,
-            "tonal_fidelity": False,
-            "natural_fluency": False,
-            "nuance_preservation": False,
-        }
-        last_attempt["grade"] = "N/A"
-        last_attempt["feedback"] = "Failed to parse evaluator output."
+    if not ARGS.simple_evaluator:
+        json_formatter_prompt = JSON_FORMATTER_USER_PROMPT.format(
+            EVALUATION_TEXT=free_form_output
+        )
+        json_output_str = await run_inference(
+            state["client"],
+            ARGS.endpoint,
+            ARGS.model,
+            json_formatter_prompt,
+            JSON_FORMATTER_SYSTEM_PROMPT,
+            temperature=0.0,
+            seed=1,
+            timeout=ARGS.timeout,
+            grammar=EVALUATOR_JSON_GRAMMAR,
+            cache_prompt=ARGS.cache_prompt,
+        )
+
+        try:
+            json_output = json.loads(json_output_str)
+            last_attempt.update(json_output)
+        except json.JSONDecodeError:
+            LOGGER.error(
+                "Failed to parse JSON from evaluator output: %s", json_output_str
+            )
+            last_attempt["rubric"] = {
+                "semantic_accuracy": False,
+                "tonal_fidelity": False,
+                "natural_fluency": False,
+                "nuance_preservation": False,
+            }
+            last_attempt["grade"] = "N/A"
+            last_attempt["feedback"] = "Failed to parse evaluator output."
+    else:
+        grade = free_form_output.split(maxsplit=1)[0].strip().lower()
+        last_attempt["grade"] = grade
+        last_attempt["feedback"] = free_form_output[len(grade) :].strip()
+        last_attempt["rubric"] = {}
 
     state["csv_writer"].writerow(
         (
             state["iteration_id"],
             state["attempt"],
             state["optimizer_seed"],
-            state["evaluator_seed"],
+            seed,
             OPTIMIZER_TEMP,
             EVALUATOR_TEMP,
             state["source_text"]["text"],
@@ -360,25 +375,80 @@ async def handle_evaluation_state(state: State) -> None:
         state["next_state"] = ""
 
 
+async def handle_verification_state(state: State) -> None:
+    LOGGER.info(
+        "Starting verification for iteration %d/%d, attempt %d/%d",
+        state["iteration_id"],
+        ARGS.iterations,
+        state["attempt"],
+        state["max_attempt"],
+    )
+    last_attempt = state["last_attempt"]
+    # do not mutate the original evaluator seed
+    seed = state["evaluator_seed"] + state["iteration_id"] * 200 + state["attempt"]
+    verification_prompt = VERIFIER_USER_PROMPT.format(
+        ORIGINAL_FEEDBACK=last_attempt["feedback"],
+        NEW_TRANSLATION_ATTEMPT=last_attempt["translation"],
+    )
+    verification_output = await run_inference(
+        state["client"],
+        ARGS.endpoint,
+        ARGS.model,
+        verification_prompt,
+        VERIFIER_SYSTEM_PROMPT,
+        temperature=0.0,
+        seed=seed,
+        timeout=ARGS.timeout,
+        cache_prompt=ARGS.cache_prompt,
+    )
+    verification_result = verification_output.strip().lower()
+    state["next_state"] = (
+        ""
+        if state["attempt"] >= state["max_attempt"] or verification_result == "pass"
+        else "optimization"
+    )
+    state["csv_writer"].writerow(
+        (
+            state["iteration_id"],
+            state["attempt"],
+            state["optimizer_seed"],
+            seed,
+            OPTIMIZER_TEMP,
+            EVALUATOR_TEMP,
+            state["source_text"]["text"],
+            last_attempt["translation"],
+            "\n".join(f"{k}: {v}" for k, v in last_attempt["rubric"].items()),
+            verification_result,
+            "...",
+            time.ctime(),
+        )
+    )
+    # this will either get overridden by the next iteration
+    # or get used in the next optimization state
+    state["optimizer_seed"] += 1
+
+
 async def main():
     LOGGER.info("Starting translation experiment...")
-    input_files = [Path(p) for p in args.input.split(",")]
+    input_files = [Path(p) for p in ARGS.input.split(",")]
     root = Path(__file__).parent
     output_files = [
         get_next_available_path(
             root
             / "evaluator_optimizer_attempts"
-            / f"{p.stem}_translated_{args.model}_attempt.csv"
+            / f"{p.stem}_translated_{ARGS.model}_attempt.csv"
         )
         for p in input_files
     ]
 
-    LOGGER.info("Model: %s", args.model)
-    LOGGER.info("Iterations per seed: %d", args.iterations)
-    LOGGER.info("Refinement iterations: %d", args.refinement_iterations)
+    LOGGER.info("Model: %s", ARGS.model)
+    LOGGER.info("Iterations per seed: %d", ARGS.iterations)
+    LOGGER.info("Refinement iterations: %d", ARGS.refinement_iterations)
     LOGGER.info("Optimizer temperature: %f", OPTIMIZER_TEMP)
     LOGGER.info("Evaluator temperature: %f", EVALUATOR_TEMP)
-    LOGGER.info("Input files: %s", args.input)
+    LOGGER.info("Input files: %s", ARGS.input)
+    LOGGER.info("Simulate thinking: %s", ARGS.simulate_thinking)
+    LOGGER.info("Simple evaluator: %s", ARGS.simple_evaluator)
 
     event = asyncio.Event()
     signal.signal(signal.SIGINT, lambda *_args: signal_handler(event))
@@ -386,6 +456,7 @@ async def main():
     state_handlers = {
         "optimization": handle_optimization_state,
         "evaluation": handle_evaluation_state,
+        "verification": handle_verification_state,
     }
 
     async with aiohttp.ClientSession() as client:
@@ -437,19 +508,19 @@ async def main():
                             "type": input_json.get("type", "general"),
                         }
 
-                        for i in range(args.iterations):
+                        for i in range(ARGS.iterations):
                             iteration_num = i + 1
                             LOGGER.info(
                                 "=== Iteration %d out of %d ===",
                                 iteration_num,
-                                args.iterations,
+                                ARGS.iterations,
                             )
 
                             state = State(
                                 iteration_id=iteration_num,
                                 source_text=source_text,
                                 next_state="optimization",
-                                max_attempt=args.refinement_iterations,
+                                max_attempt=ARGS.refinement_iterations,
                                 attempt=0,
                                 last_attempt={},
                                 optimizer_seed=SEEDS[i],

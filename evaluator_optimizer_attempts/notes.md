@@ -33,3 +33,6 @@ Your entire output must follow this structure.
 - literature attempts 5 (evaluator temp 0.5) and 6 (evaluator temp 0.1) uses json formatter. verdict: attempt 6 is good enough, but the latency could be better!
 - wont fix: literature attempt 7 uses a smaller model (gemma-3-270M-it-qat) for the json formatter (NOT FEASIBLE).
 - literature attempt 7 uses temp 1.4 for all optimizer (draft & refinement is now one single state, and refinement is no longer using a lower temp than the initial draft).
+- added --simple-evaluator and --simulate-thinking at attempt 8
+- attempt 9: decreased evaluator temp to 0.7 and increased optimizer temp to 1.03 (draft generation temp remains 1.4)
+- attempt 10: increment evaluator seed by 1 for each attempt.
