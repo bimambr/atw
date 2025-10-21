@@ -34,8 +34,7 @@ python311 -m pip install aiohttp
 
 5. Download the Model: Download the [unsloth/gemma-3n-E4B-it-GGUF](https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF) model from Hugging Face and place it in the root directory of this project (we use specifically Q4_K_M, though other variants should work fine too).
 
-> [!NOTE]
-> _For other platforms (Linux/macOS): You will need to install Python 3.11 and compile llama.cpp from source according to their official documentation._
+> [!NOTE] > _For other platforms (Linux/macOS): You will need to install Python 3.11 and compile llama.cpp from source according to their official documentation._
 
 ## Usage
 
@@ -51,7 +50,7 @@ Open a terminal in the project's root directory and run the `llama-server`. This
 
 ```sh
 # Example command to run llama-server
-llama-server -m ./gemma-3n-E4B-it-GGUF.gguf --port 8000 -c 32768 -fa on --cache-ram 0 --no-webui
+llama-server -m .\gemma-3n-E4B-it.gguf --port 8000 -c 32768 -fa on --cache-ram 4096 --repeat-penalty 1.0 --min-p 0.01 --top-k 64 --top-p 0.95 --no-webui
 ```
 
 ##### Step 3: Run the Experiment Script
@@ -59,7 +58,7 @@ llama-server -m ./gemma-3n-E4B-it-GGUF.gguf --port 8000 -c 32768 -fa on --cache-
 Open a second terminal in the project's root directory. Run the `evaluator_optimizer.py` script, pointing it to your input corpus.
 
 ```sh
-python evaluator_optimizer.py --input "corpus/literature.json" --timeout 0
+python evaluator_optimizer.py --input "corpus/literature.json" --timeout 0 --simple-evaluator --iterations 5 --refinement-iterations 5 --cache-prompt --omit-roles --preserve-history
 ```
 
 ## Output
