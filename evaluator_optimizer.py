@@ -37,7 +37,7 @@ from lib import (
 
 EVALUATOR_TEMP = 0.1
 OPTIMIZER_TEMP = 1.4
-OPTIMIZER_ALT_TEMP = 0.7
+OPTIMIZER_ALT_TEMP = 0.4
 EVALUATOR_SEED = 727
 SEEDS = [101, 202, 303, 404, 505, 606, 707, 808, 909, 1010]
 ARGS = get_parsed_args()
@@ -264,7 +264,7 @@ async def handle_optimization_state(state: State) -> None:
             SOURCE_LANG=state["source_text"]["source_lang"],
             TARGET_LANG=state["source_text"]["target_lang"],
         )
-        state["next_state"] = "verification"
+        state["next_state"] = "verification" if ARGS.evaluate_once else "evaluation"
 
     temp = OPTIMIZER_TEMP if is_draft else OPTIMIZER_ALT_TEMP
     seed = state["optimizer_seed"] * 10 + state["attempt"]

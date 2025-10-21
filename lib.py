@@ -167,6 +167,7 @@ class CLIArgs(argparse.Namespace):
     simple_evaluator: bool
     cache_prompt: bool
     omit_roles: bool
+    evaluate_once: bool
 
 
 def get_parsed_args() -> CLIArgs:
@@ -227,5 +228,11 @@ def get_parsed_args() -> CLIArgs:
         action="store_true",
         default=False,
         help="Omit roles in system prompts",
+    )
+    parser.add_argument(
+        "--evaluate-once",
+        action="store_true",
+        default=False,
+        help="Evaluate only once then use a simple gate instead of after each optimization iteration.",
     )
     return parser.parse_args(namespace=CLIArgs)
