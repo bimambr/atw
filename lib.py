@@ -71,25 +71,27 @@ async def run_inference(
     client: aiohttp.ClientSession,
     endpoint: str,
     model: str,
-    prompt: str,
-    system_prompt: str,
     temperature: float,
     seed: int,
     timeout: int,
     grammar: str | None = None,
     cache_prompt: bool = False,
+    messages: list[tuple[str, str, str]] | None = None,
 ) -> str:
     LOGGER.info("Hitting %s with temp=%f, seed=%d", endpoint, temperature, seed)
     try:
+        formatted_messages = [
+            {"role": role, "content": content, "name": name}
+            for role, content, name in messages or []
+        ]
+        if not formatted_messages:
+            raise ValueError("Messages must be provided for inference.")
         payload = {
             "model": model,
             "stream": True,
             "temperature": temperature,
             "seed": seed,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt},
-            ],
+            "messages": formatted_messages,
             "cache_prompt": cache_prompt,
         }
 
@@ -168,6 +170,7 @@ class CLIArgs(argparse.Namespace):
     cache_prompt: bool
     omit_roles: bool
     evaluate_once: bool
+    preserve_history: bool
 
 
 def get_parsed_args() -> CLIArgs:
@@ -233,6 +236,12 @@ def get_parsed_args() -> CLIArgs:
         "--evaluate-once",
         action="store_true",
         default=False,
-        help="Evaluate only once then use a simple gate instead of after each optimization iteration.",
+        help="Evaluate only once then use a simple gate instead of after each optimization iteration (DEPRECATED).",
+    )
+    parser.add_argument(
+        "--preserve-history",
+        action="store_true",
+        default=False,
+        help="Preserve the full interaction history when optimizing translations.",
     )
     return parser.parse_args(namespace=CLIArgs)

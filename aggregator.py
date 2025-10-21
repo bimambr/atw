@@ -144,11 +144,13 @@ async def main():
                     client,
                     ENDPOINT,
                     "",
-                    user_prompt,
-                    AGGREGATOR_SYSTEM_PROMPT,
                     AGGREGATOR_TEMP,
                     seed=int(text_id) * 337,
                     timeout=TIMEOUT,
+                    messages=[
+                        ("system", AGGREGATOR_SYSTEM_PROMPT),
+                        ("user", user_prompt),
+                    ],
                 )
                 if not (
                     match := re.search(

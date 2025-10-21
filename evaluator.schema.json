@@ -32,8 +32,8 @@
       "description": "The final, overall grade based on the rubric.",
       "type": "string",
       "enum": [
-        "acceptable",
-        "needs_revision"
+        "pass",
+        "fail"
       ]
     },
     "feedback": {

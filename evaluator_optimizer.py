@@ -22,7 +22,7 @@ import re
 import signal
 import time
 from pathlib import Path
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 import aiohttp
 
@@ -35,9 +35,9 @@ from lib import (
     wait,
 )
 
-EVALUATOR_TEMP = 0.1
+EVALUATOR_TEMP = 0.4
 OPTIMIZER_TEMP = 1.4
-OPTIMIZER_ALT_TEMP = 0.4
+OPTIMIZER_ALT_TEMP = 1.0
 EVALUATOR_SEED = 727
 SEEDS = [101, 202, 303, 404, 505, 606, 707, 808, 909, 1010]
 ARGS = get_parsed_args()
@@ -87,11 +87,11 @@ You MUST first evaluate the translation against the following four criteria. For
 Your entire response MUST follow this structure in this exact order:
 
 1.  **The Rubric Scorecard:** First, list your grades for the four criteria.
-2.  **The Final Grade:** On a new line, provide the overall grade: `acceptable` or `needs_revision`.
+2.  **The Final Grade:** On a new line, provide the overall grade: `pass` or `fail`.
 3.  **The Critique:** Following the final grade, provide your detailed analysis explaining the reasoning behind your scorecard and final grade.
 
 --- CRUCIAL RULE ---
-If even ONE criterion in your scorecard is marked as **FAIL**, the final grade MUST be `needs_revision`. You can only give a grade of `acceptable` if all four criteria are a **PASS**.
+If even ONE criterion in your scorecard is marked as **FAIL**, the final grade MUST be `fail`. You can only give a grade of `pass` if all four criteria are a **PASS**.
 """
 EVALUATOR_SIMPLE_SYSTEM_PROMPT = f"""{"You are a meticulous and highly critical linguistic editor tasked with evaluating translations. " * (not ARGS.omit_roles)}Your goal is to ensure that every translation meets the highest standards of quality.
 
@@ -106,8 +106,8 @@ Your response must include the following sections in order:
 1. Analyse the tone, style, and meaning of the source text under the `--- ANALYSIS ---`.
 2. Evaluate the translation attempt against the source text under the `--- EVALUATION ---`.
 3. Provide your final assessment under the `--- VERDICT ---` header, without the subticks:
-    - Respond only with "acceptable" if you find the translation meets all quality standards, free of ANY issues.
-    - Otherwise, respond with "needs_revision", followed by a comprehensive feedback on how to improve the translation and maintain the meaning, tone, and style of its original source text. Give specific examples for each problematic phrase. If you find a phrase with multiple meanings depending on the context, explore all the possible meanings in differing contexts for the translator to decide. Do not emphasize your changes with formatting.
+    - Respond only with "pass" if you find the translation meets all quality standards, free of ANY issues.
+    - Otherwise, respond with "fail", followed by a comprehensive feedback on how to improve the translation and maintain the meaning, tone, and style of its original source text. Give specific examples for each problematic phrase. If you find a phrase with multiple meanings depending on the context, explore all the possible meanings in differing contexts for the translator to decide. Do not emphasize your changes with formatting.
 """
 EVALUATOR_USER_PROMPT = """--- CONTEXT ---
 Text type: {TEXT_TYPE}
@@ -126,7 +126,7 @@ Target Language: {TARGET_LANG}
 EVALUATOR_JSON_GRAMMAR = r"""boolean ::= ("true" | "false") space
 char ::= [^"\\\x7f\x00-\x1f] | [\\] (["\\bfnrt] | "u" [0-9a-fA-F]{4})
 feedback-kv ::= "\"feedback\"" space ":" space string
-grade ::= ("\"acceptable\"" | "\"needs_revision\"") space
+grade ::= ("\"pass\"" | "\"fail\"") space
 grade-kv ::= "\"grade\"" space ":" space grade
 root ::= "{" space rubric-kv "," space grade-kv "," space feedback-kv "}" space
 rubric ::= "{" space rubric-semantic-accuracy-kv "," space rubric-tonal-fidelity-kv "," space rubric-natural-fluency-kv "," space rubric-nuance-preservation-kv "}" space
@@ -193,10 +193,28 @@ class Rubric(TypedDict):
 
 
 class TranslationAttempt(TypedDict):
+    type: Literal["attempt"]
     translation: str
+    prompt: str
+    system_prompt: str
+    seed: int
+    temp: float
+
+
+class TranslationFeedback(TypedDict):
+    type: Literal["feedback"]
     rubric: Rubric
     grade: str
     feedback: str
+    prompt: str
+    system_prompt: str
+    seed: int
+    temp: float
+
+
+class TranslationVerification(TypedDict):
+    type: Literal["verification"]
+    result: str
     prompt: str
     system_prompt: str
     seed: int
@@ -217,11 +235,34 @@ class State(TypedDict):
     next_state: str
     max_attempt: int
     attempt: int
-    last_attempt: TranslationAttempt
+    history: list[TranslationAttempt]
     optimizer_seed: int
     evaluator_seed: int
     client: aiohttp.ClientSession
     csv_writer: csv.writer
+
+
+def get_last_feedback(state: State) -> TranslationFeedback | None:
+    for entry in state["history"][::-1]:
+        if entry["type"] == "feedback":
+            return entry  # type: ignore
+    return None
+
+
+def fill_in_messages(state: State, messages: list[tuple[str, str, str]]) -> None:
+    if not ARGS.preserve_history:
+        return
+
+    for entry in state["history"]:
+        if entry["type"] == "attempt":
+            messages.append(("user", entry["prompt"], "user"))
+            messages.append(("assistant", entry["translation"], "optimizer"))
+        elif entry["type"] == "feedback":
+            messages.append(("user", entry["prompt"], "user"))
+            messages.append(("assistant", entry["feedback"], "evaluator"))
+        elif entry["type"] == "verification":
+            messages.append(("user", entry["prompt"], "user"))
+            messages.append(("assistant", entry["result"], "evaluator"))
 
 
 async def handle_optimization_state(state: State) -> None:
@@ -252,10 +293,25 @@ async def handle_optimization_state(state: State) -> None:
         )
         state["next_state"] = "evaluation"
     else:
-        last_attempt = state["last_attempt"]
+        # walk backwards to find the last attempt with feedback
+        last_feedback = get_last_feedback(state)
+
+        # THIS SHOULD NEVER HAPPEN
+        if not last_feedback:
+            LOGGER.error(
+                "No feedback found from previous attempts for text %d, iteration %d/%d, attempt %d/%d. Cannot proceed with refinement.",
+                state["source_text"]["id"],
+                state["iteration_id"],
+                ARGS.iterations,
+                state["attempt"],
+                state["max_attempt"],
+            )
+            state["next_state"] = ""
+            return
+
         prompt = OPTIMIZER_RETRY_PROMPT.format(
             SOURCE_TEXT=state["source_text"]["text"],
-            FEEDBACK=last_attempt["feedback"],
+            FEEDBACK=last_feedback["feedback"],
             TEXT_TYPE=state["source_text"]["type"],
             SOURCE_LANG=state["source_text"]["source_lang"],
             TARGET_LANG=state["source_text"]["target_lang"],
@@ -268,16 +324,18 @@ async def handle_optimization_state(state: State) -> None:
 
     temp = OPTIMIZER_TEMP if is_draft else OPTIMIZER_ALT_TEMP
     seed = state["optimizer_seed"] * 10 + state["attempt"]
+    messages = [("system", system_prompt, "system")]
+    fill_in_messages(state, messages)
+    messages.append(("user", prompt, "user"))
     translation = await run_inference(
         state["client"],
         ARGS.endpoint,
         ARGS.model,
-        prompt,
-        system_prompt,
         temp,
         seed,
         timeout=ARGS.timeout,
         cache_prompt=ARGS.cache_prompt,
+        messages=messages,
     )
 
     if ARGS.simulate_thinking:
@@ -290,11 +348,16 @@ async def handle_optimization_state(state: State) -> None:
         else:
             translation = translation[match.end() :].strip()
 
-    state["last_attempt"]["translation"] = translation
-    state["last_attempt"]["prompt"] = prompt
-    state["last_attempt"]["system_prompt"] = system_prompt
-    state["last_attempt"]["seed"] = seed
-    state["last_attempt"]["temp"] = temp
+    state["history"].append(
+        {
+            "type": "attempt",
+            "translation": translation,
+            "prompt": prompt,
+            "system_prompt": system_prompt,
+            "seed": seed,
+            "temp": temp,
+        }
+    )
 
 
 async def handle_evaluation_state(state: State) -> None:
@@ -308,7 +371,8 @@ async def handle_evaluation_state(state: State) -> None:
     )
     # do not mutate the original evaluator seed
     seed = state["evaluator_seed"] + state["iteration_id"] * 100
-    last_attempt = state["last_attempt"]
+    last_attempt = state["history"][-1]
+    assert last_attempt["type"] == "attempt"
     system_prompt = (
         EVALUATOR_SIMPLE_SYSTEM_PROMPT
         if ARGS.simple_evaluator
@@ -321,31 +385,44 @@ async def handle_evaluation_state(state: State) -> None:
         TRANSLATION_ATTEMPT=last_attempt["translation"],
         TEXT_TYPE=state["source_text"]["type"],
     )
+    messages = [("system", system_prompt, "system")]
+    fill_in_messages(state, messages)
+    messages.append(("user", prompt, "user"))
     free_form_output = await run_inference(
         state["client"],
         ARGS.endpoint,
         ARGS.model,
-        prompt,
-        system_prompt,
         EVALUATOR_TEMP,
         seed,
         timeout=ARGS.timeout,
         cache_prompt=ARGS.cache_prompt,
+        messages=messages,
     )
+
+    feedback: TranslationFeedback = {
+        "type": "feedback",
+        "prompt": prompt,
+        "system_prompt": system_prompt,
+        "seed": seed,
+        "temp": EVALUATOR_TEMP,
+    }
+    state["history"].append(feedback)
 
     if ARGS.simple_evaluator:
         if not (
             match := re.search(r"--- VERDICT ---\s*:?", free_form_output, re.IGNORECASE)
         ):
-            last_attempt["rubric"] = {}
-            last_attempt["grade"] = "N/A"
-            last_attempt["feedback"] = "Failed to find verdict section."
+            feedback["rubric"] = {}
+            # do a dumb guess based on the presence of the word
+            # this usually happens when the context becomes too long
+            feedback["grade"] = "pass" if "pass" in free_form_output.lower() else "fail"
+            feedback["feedback"] = "Failed to find verdict section."
         else:
             verdict = free_form_output[match.end() :].strip()
             grade = verdict.split(maxsplit=1)[0].strip().lower()
-            last_attempt["grade"] = grade
-            last_attempt["feedback"] = free_form_output.strip()
-            last_attempt["rubric"] = {}
+            feedback["grade"] = grade
+            feedback["feedback"] = free_form_output.strip()
+            feedback["rubric"] = {}
     else:
         json_formatter_prompt = JSON_FORMATTER_USER_PROMPT.format(
             EVALUATION_TEXT=free_form_output
@@ -354,46 +431,48 @@ async def handle_evaluation_state(state: State) -> None:
             state["client"],
             ARGS.endpoint,
             ARGS.model,
-            json_formatter_prompt,
-            JSON_FORMATTER_SYSTEM_PROMPT,
             temperature=0.0,
             seed=1,
             timeout=ARGS.timeout,
             grammar=EVALUATOR_JSON_GRAMMAR,
             cache_prompt=ARGS.cache_prompt,
+            messages=[
+                ("system", JSON_FORMATTER_SYSTEM_PROMPT),
+                ("user", json_formatter_prompt),
+            ],
         )
 
         try:
             json_output = json.loads(json_output_str)
-            last_attempt.update(json_output)
+            feedback.update(json_output)
         except json.JSONDecodeError:
             LOGGER.error(
                 "Failed to parse JSON from evaluator output: %s", json_output_str
             )
-            last_attempt["rubric"] = {
+            feedback["rubric"] = {
                 "semantic_accuracy": False,
                 "tonal_fidelity": False,
                 "natural_fluency": False,
                 "nuance_preservation": False,
             }
-            last_attempt["grade"] = "N/A"
-            last_attempt["feedback"] = "Failed to parse evaluator output."
+            feedback["grade"] = "N/A"
+            feedback["feedback"] = "Failed to parse evaluator output."
 
     state["csv_writer"].writerow(
         (
             state["source_text"]["id"],
             state["iteration_id"],
             state["attempt"],
-            state["last_attempt"]["seed"],
-            state["last_attempt"]["temp"],
+            last_attempt["seed"],
+            last_attempt["temp"],
             seed,
             EVALUATOR_TEMP,
             state["source_text"]["text"],
             last_attempt["translation"],
             "evaluator",
-            "\n".join(f"{k}: {v}" for k, v in last_attempt["rubric"].items()) or "N/A",
-            last_attempt["grade"],
-            last_attempt["feedback"],
+            "\n".join(f"{k}: {v}" for k, v in feedback["rubric"].items()) or "N/A",
+            feedback["grade"],
+            feedback["feedback"],
             time.ctime(),
             last_attempt["system_prompt"],
             last_attempt["prompt"],
@@ -403,10 +482,7 @@ async def handle_evaluation_state(state: State) -> None:
     )
 
     state["next_state"] = "optimization"
-    if (
-        "acceptable" in last_attempt["grade"]
-        or state["attempt"] >= state["max_attempt"]
-    ):
+    if "pass" in feedback["grade"] or state["attempt"] >= state["max_attempt"]:
         state["next_state"] = ""
 
 
@@ -419,26 +495,53 @@ async def handle_verification_state(state: State) -> None:
         state["attempt"],
         state["max_attempt"],
     )
-    last_attempt = state["last_attempt"]
+
+    last_attempt = state["history"][-1]
+    assert last_attempt["type"] == "attempt"
+
+    last_feedback = get_last_feedback(state)
+    if not last_feedback:
+        LOGGER.error(
+            "No feedback found from previous attempts for text %d, iteration %d/%d, attempt %d/%d. Cannot proceed with verification.",
+            state["source_text"]["id"],
+            state["iteration_id"],
+            ARGS.iterations,
+            state["attempt"],
+            state["max_attempt"],
+        )
+        state["next_state"] = ""
+        return
+
     temp = 0.0
     # do not mutate the original evaluator seed
     seed = state["evaluator_seed"] + state["iteration_id"] * 200 + state["attempt"]
     verification_prompt = VERIFIER_USER_PROMPT.format(
-        ORIGINAL_FEEDBACK=last_attempt["feedback"],
+        ORIGINAL_FEEDBACK=last_feedback["feedback"],
         NEW_TRANSLATION_ATTEMPT=last_attempt["translation"],
     )
+    messages = [("system", VERIFIER_SYSTEM_PROMPT, "system")]
+    fill_in_messages(state, messages)
+    messages.append(("user", verification_prompt, "user"))
     verification_output = await run_inference(
         state["client"],
         ARGS.endpoint,
         ARGS.model,
-        verification_prompt,
-        VERIFIER_SYSTEM_PROMPT,
         temperature=temp,
         seed=seed,
         timeout=ARGS.timeout,
         cache_prompt=ARGS.cache_prompt,
+        messages=messages,
     )
     verification_result = verification_output.strip().lower()
+    result: TranslationVerification = {
+        "type": "verification",
+        "result": verification_result,
+        "prompt": verification_prompt,
+        "system_prompt": VERIFIER_SYSTEM_PROMPT,
+        "seed": seed,
+        "temp": temp,
+    }
+    state["history"].append(result)
     state["next_state"] = (
         ""
         if state["attempt"] >= state["max_attempt"] or verification_result == "pass"
@@ -449,8 +552,8 @@ async def handle_verification_state(state: State) -> None:
             state["source_text"]["id"],
             state["iteration_id"],
             state["attempt"],
-            state["last_attempt"]["seed"],
-            state["last_attempt"]["temp"],
+            last_attempt["seed"],
+            last_attempt["temp"],
             seed,
             temp,
             state["source_text"]["text"],
@@ -572,7 +675,7 @@ async def main():
                                 next_state="optimization",
                                 max_attempt=ARGS.refinement_iterations,
                                 attempt=0,
-                                last_attempt={},
+                                history=[],
                                 optimizer_seed=SEEDS[i],
                                 evaluator_seed=EVALUATOR_SEED,
                                 client=client,
@@ -582,6 +685,16 @@ async def main():
                             while handler := state_handlers.get(state["next_state"]):
                                 await wait(handler(state), event)
                                 csvfile.flush()
+
+                            with open(
+                                output_file.with_suffix(".jsonl"), "a", encoding="utf-8"
+                            ) as jsonl_file:
+                                jsonl_file.write(
+                                    json.dumps(
+                                        state["history"], ensure_ascii=False, indent=4
+                                    )
+                                )
+                                jsonl_file.write("\n")
 
             except IOError as e:
                 LOGGER.error(
