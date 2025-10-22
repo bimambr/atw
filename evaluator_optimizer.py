@@ -35,9 +35,9 @@ from lib import (
     wait,
 )
 
-EVALUATOR_TEMP = 0.4
-OPTIMIZER_TEMP = 1.4
-OPTIMIZER_ALT_TEMP = 1.0
+EVALUATOR_TEMP = 0.05
+OPTIMIZER_TEMP = 1.0
+OPTIMIZER_ALT_TEMP = 0.5
 EVALUATOR_SEED = 727
 SEEDS = [101, 202, 303, 404, 505, 606, 707, 808, 909, 1010]
 ARGS = get_parsed_args()
@@ -103,11 +103,13 @@ EVALUATOR_SIMPLE_SYSTEM_PROMPT = f"""{"You are a meticulous and highly critical 
 
 --- OUTPUT FORMAT ---
 Your response must include the following sections in order:
-1. Analyse the tone, style, and meaning of the source text under the `--- ANALYSIS ---`.
-2. Evaluate the translation attempt against the source text under the `--- EVALUATION ---`.
+1. Analyse the tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
+2. Evaluate the translation attempt against the source text under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation. Be thorough and precise in your critique.
 3. Provide your final assessment under the `--- VERDICT ---` header, without the subticks:
     - Respond only with "pass" if you find the translation meets all quality standards, free of ANY issues.
     - Otherwise, respond with "fail", followed by a comprehensive feedback on how to improve the translation and maintain the meaning, tone, and style of its original source text. Give specific examples for each problematic phrase. If you find a phrase with multiple meanings depending on the context, explore all the possible meanings in differing contexts for the translator to decide. Do not emphasize your changes with formatting.
+
+You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before.
 """
 EVALUATOR_USER_PROMPT = """--- CONTEXT ---
 Text type: {TEXT_TYPE}
@@ -146,23 +148,26 @@ JSON_FORMATTER_USER_PROMPT = """Please parse the following evaluation text and c
 
 --- JSON OUTPUT ---
 """
-OPTIMIZER_RETRY_PROMPT = """A previous translation attempt was evaluated and requires a complete rewrite. Your task is to deeply consider the editor's feedback and generate a completely new version of the translation that addresses the identified problems.
+OPTIMIZER_RETRY_PROMPT = f"""A previous translation attempt was evaluated.
 
-Start again from scratch, keeping the feedback in mind.
+{
+    "Your task is to consider the editor's feedback and then revise the translation accordingly. "
+    if ARGS.preserve_history
+    else "Your task is to deeply consider the editor's feedback and generate a completely new version of the translation that addresses the identified problems. Start again from scratch, keeping the feedback in mind."
+}
 
 --- CONTEXT ---
-Text type: {TEXT_TYPE}
-Source Language: {SOURCE_LANG}
-Target Language: {TARGET_LANG}
+Text type: {{TEXT_TYPE}}
+Source Language: {{SOURCE_LANG}}
+Target Language: {{TARGET_LANG}}
 
 --- SOURCE TEXT ---
-{SOURCE_TEXT}
+{{SOURCE_TEXT}}
 
 --- EDITOR'S FEEDBACK ---
-{FEEDBACK}
+{{FEEDBACK}}
 
---- FINAL TASK ---
-Generate a new, final, and improved translation in {TARGET_LANG}:
+--- OUTPUT ---
 """
 VERIFIER_SYSTEM_PROMPT = """You are a robotic and literal Quality Assurance Verifier. Your only function is to check if a revised text has correctly implemented a set of required changes. You do not have opinions or creative ideas.
 
