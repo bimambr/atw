@@ -63,6 +63,9 @@ async def stream_response(response: aiohttp.ClientResponse) -> str:
         except json.JSONDecodeError:
             LOGGER.error("Failed to decode JSON chunk: %s", data)
 
+    if not chunk.endswith("\n"):
+        print()
+
     LOGGER.info("Completed streaming response. Last chunk: %s", json_data)
     return full_response.strip()
 
