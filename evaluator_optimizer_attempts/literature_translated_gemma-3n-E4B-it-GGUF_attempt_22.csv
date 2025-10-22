@@ -1,0 +1,1117 @@
+text_id,iteration_id,attempt,optimizer_seed,optimizer_temp,evaluator_seed,evaluator_temp,source_text,translation_attempt,evaluator_type,rubric,grade,feedback,timestamp,optimizer_system_prompt,optimizer_user_prompt,evaluator_system_prompt,evaluator_user_prompt
+1,1,1,1011,1.4,827,0.7,"*Suicide, my ass*, was my instant, and silent, reaction. Why hadn't Sybil hired me to come out here to read his grave first, instead of sending me to the woods to find Teenie? Of course this boy hadn't shot himself. Dell Teague had been murdered, just like his wild girlfriend. I opened my eyes. Hollis Boxleitner had swung around to check on what I was doing. I looked into the intent face of the deputy. ""No suicide here,"" I said.","*Bunuh diri, omong kosong*, reaksi instan, dan tanpa suara saya. Kenapa Sybil tidak mempekerjakan saya untuk membaca makamnya terlebih dahulu, daripada mengirim saya ke hutan untuk mencari Teenie? Tentu saja anak ini tidak bunuh diri. Dell Teague dibunuh, sama seperti pacar pemberontaknya. Saya membuka mata. Hollis Boxleitner berbalik untuk melihat apa yang saya lakukan. Saya menatap wajah serius petugas kepolisian itu. ""Tidak ada bunuh diri di sini,"" kataku.",evaluator,N/A,fail,"--- EVALUATION ---
+
+**Analysis:**
+
+The source text uses informal language (""my ass,"" ""omong kosong"") and a direct, slightly cynical tone characteristic of the narrator, Harper Connelly. The phrasing is concise and to the point, reflecting her pragmatic and somewhat jaded personality. The context establishes Harper's unusual profession and her tendency to be underestimated. The reference to Sybil Teague and Dell Teague requires careful handling to maintain clarity and avoid ambiguity. The key is to convey the immediacy and frustration of Harper's internal monologue.
+
+**Evaluation:**
+
+The translation is generally accurate but lacks the punch and naturalness of the original.
+
+*   **""Suicide, my ass""**: ""Bunuh diri, omong kosong"" is a very literal translation. While understandable, it sounds somewhat unnatural in Indonesian. Alternatives:
+    *   ""Bunuh diri? Jangan bodoh."" (Suicide? Don't be foolish.) - More idiomatic and conveys the disbelief.
+    *   ""Bunuh diri? Tidak mungkin."" (Suicide? Impossible.) - Slightly less informal, but still conveys skepticism.
+    *   ""Bunuh diri? Mana mungkin."" (Suicide? How could it be?) - More colloquial and fits the tone better.
+
+*   **""Why hadn't Sybil hired me...""**: ""Kenapa Sybil tidak mempekerjakan saya..."" is grammatically correct but a bit stiff. A more natural phrasing would be:
+    *   ""Kenapa Sybil tidak memanggil saya untuk..."" (Why didn't Sybil call me to...) - ""Memanggil"" is more natural than ""mempekerjakan"" in this context.
+    *   ""Kenapa Sybil tidak meminta saya untuk..."" (Why didn't Sybil ask me to...) - Similar to the above, ""meminta"" fits better.
+
+*   **""intent face of the deputy""**: ""wajah serius petugas kepolisian itu"" is accurate, but ""serius"" (serious) is a bit bland. Alternatives:
+    *   ""wajah tegang petugas kepolisian itu"" (tense face of the police officer) - Captures a sense of alertness and suspicion.
+    *   ""wajah khawatiran petugas kepolisian itu"" (worried face of the police officer) - Conveys a sense of concern.
+
+*   **Overall Coherence**: The translation is understandable, but the flow feels slightly clunky in places. The sentence structure could be adjusted to better match Indonesian sentence patterns and create a more natural reading experience. The use of ""itu"" (that/the) is slightly overused and can be removed in some instances.
+
+The translation correctly implements the analysis by addressing the informal language and the need for a direct tone. However, it could be improved by adopting more idiomatic expressions and refining sentence structure for a smoother, more natural flow.
+
+
+
+--- VERDICT ---
+
+fail",Wed Oct 22 23:00:06 2025,"Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from English to Indonesian.
+
+--- REQUIREMENTS ---
+1.  Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in Indonesian to best convey the original meaning.
+2.  Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
+3.  The final translation must read naturally in the Indonesian. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
+4.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+The output is the clean, final translation in Indonesian with no header or any additional formatting. You must not include any additional commentary or analysis.
+
+","--- CONTEXT ---
+Text type: fictional text, novel excerpt
+Source Language: English
+Target Language: Indonesian
+Notes:     - The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.
+    - Dell Teague, Sybil Teague's son, was Teenie's boyfriend
+            
+
+--- SOURCE TEXT ---
+*Suicide, my ass*, was my instant, and silent, reaction. Why hadn't Sybil hired me to come out here to read his grave first, instead of sending me to the woods to find Teenie? Of course this boy hadn't shot himself. Dell Teague had been murdered, just like his wild girlfriend. I opened my eyes. Hollis Boxleitner had swung around to check on what I was doing. I looked into the intent face of the deputy. ""No suicide here,"" I said.
+
+--- TASK ---
+Provide only the translation following the required output format:
+","Your goal is to ensure that every translation meets the highest standards of quality.
+
+--- REQUIREMENTS ---
+1. The translation must be faithful to the original text in meaning, tone, and style.
+2. The translation must read naturally in the target language.
+3. You must provide constructive feedback highlighting any issues or areas for improvement.
+4. Do not sugarcoat your assessment; be direct and precise.
+5. Avoid vague and broad statements; be specific about what is wrong or right.
+6.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+Your response must include the following sections in order:
+1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
+2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation and provide multiple alternatives or suggestions for each .
+3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
+    - Respond only with ""pass"" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
+    - Otherwise, respond with ""fail""
+
+You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before.
+","
+
+
+--- TASK ---
+Provide the evaluation using the required output structure:
+"
+1,1,2,1012,1.0,827,0.7,"*Suicide, my ass*, was my instant, and silent, reaction. Why hadn't Sybil hired me to come out here to read his grave first, instead of sending me to the woods to find Teenie? Of course this boy hadn't shot himself. Dell Teague had been murdered, just like his wild girlfriend. I opened my eyes. Hollis Boxleitner had swung around to check on what I was doing. I looked into the intent face of the deputy. ""No suicide here,"" I said.","*Bunuh diri? Jangan bodoh*, reaksi instan, dan tanpa suara saya. Kenapa Sybil tidak memanggil saya untuk membaca makamnya terlebih dahulu, daripada mengirim saya ke hutan untuk mencari Teenie? Tentu saja anak ini tidak bunuh diri. Dell Teague dibunuh, sama seperti pacar pemberontaknya. Saya membuka mata. Hollis Boxleitner berbalik untuk melihat apa yang saya lakukan. Saya menatap wajah tegang petugas kepolisian itu. ""Tidak ada bunuh diri di sini,"" kataku.",evaluator,N/A,pass,"--- EVALUATION ---
+
+**Analysis:**
+
+The source text uses informal language (""my ass,"" ""omong kosong"") and a direct, slightly cynical tone characteristic of the narrator, Harper Connelly. The phrasing is concise and to the point, reflecting her pragmatic and somewhat jaded personality. The context establishes Harper's unusual profession and her tendency to be underestimated. The reference to Sybil Teague and Dell Teague requires careful handling to maintain clarity and avoid ambiguity. The key is to convey the immediacy and frustration of Harper's internal monologue.
+
+**Evaluation:**
+
+The revised translation is significantly better, demonstrating a stronger understanding of the required tone and a more natural flow in Indonesian.
+
+*   **""Suicide, my ass""**: ""Bunuh diri? Jangan bodoh"" is a much better translation. It captures the dismissive and incredulous tone of the original more effectively than ""omong kosong."" It's more idiomatic and aligns well with Harper's personality.
+
+*   **""Why hadn't Sybil hired me...""**: ""Kenapa Sybil tidak memanggil saya untuk..."" is an improvement. Using ""memanggil"" is a more natural and appropriate choice than ""mempekerjakan"" in this context.
+
+*   **""intent face of the deputy""**: ""Wajah tegang petugas kepolisian itu"" is a strong improvement. ""Tegang"" effectively conveys the sense of alertness and potential suspicion that ""intent"" implies.
+
+*   **Overall Coherence**: The revised translation flows much more smoothly and reads more naturally in Indonesian. The sentence structure is more idiomatic, and the overall impact is more consistent with the original's tone. The removal of unnecessary ""itu"" further enhances the flow.
+
+The revised translation successfully addresses the previous feedback by adopting more idiomatic expressions and refining sentence structure to create a more natural and impactful reading experience. The tone is now much closer to the original, and the translation effectively conveys Harper's cynicism and frustration.
+
+--- VERDICT ---
+
+pass",Wed Oct 22 23:00:42 2025,"Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from English to Indonesian.
+
+--- REQUIREMENTS ---
+1.  Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in Indonesian to best convey the original meaning.
+2.  Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
+3.  The final translation must read naturally in the Indonesian. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
+4.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+The output is the clean, final translation in Indonesian with no header or any additional formatting. You must not include any additional commentary or analysis.
+
+","A previous translation attempt was evaluated.
+
+Your task is to consider the editor's feedback and then revise the translation accordingly. 
+
+
+
+--- TASK ---
+Provide only the revised translation following the required output format:
+","Your goal is to ensure that every translation meets the highest standards of quality.
+
+--- REQUIREMENTS ---
+1. The translation must be faithful to the original text in meaning, tone, and style.
+2. The translation must read naturally in the target language.
+3. You must provide constructive feedback highlighting any issues or areas for improvement.
+4. Do not sugarcoat your assessment; be direct and precise.
+5. Avoid vague and broad statements; be specific about what is wrong or right.
+6.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+Your response must include the following sections in order:
+1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
+2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation and provide multiple alternatives or suggestions for each .
+3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
+    - Respond only with ""pass"" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
+    - Otherwise, respond with ""fail""
+
+You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before.
+","
+
+
+--- TASK ---
+Provide the evaluation using the required output structure:
+"
+1,2,1,2021,1.4,927,0.7,"*Suicide, my ass*, was my instant, and silent, reaction. Why hadn't Sybil hired me to come out here to read his grave first, instead of sending me to the woods to find Teenie? Of course this boy hadn't shot himself. Dell Teague had been murdered, just like his wild girlfriend. I opened my eyes. Hollis Boxleitner had swung around to check on what I was doing. I looked into the intent face of the deputy. ""No suicide here,"" I said.","*Bunuh diri, omong kosong*, reaksi instan saya, yang tak terucapkan. Mengapa Sybil tidak mempekerjakan saya untuk membaca makamnya terlebih dahulu, daripada mengirim saya ke hutan untuk mencari Teenie? Tentu saja anak ini tidak menembak dirinya sendiri. Dell Teague dibunuh, sama seperti kekasihnya yang liar. Saya membuka mata. Hollis Boxleitner berbalik untuk melihat apa yang saya lakukan. Saya menatap wajah serius petugas polisi itu. ""Tidak ada bunuh diri di sini,"" kataku.",evaluator,N/A,pass,"--- EVALUATION ---
+
+**Clause-by-clause/Phrase-by-phrase Analysis:**
+
+*   ""Suicide, my ass"" -> ""Bunuh diri, omong kosong"" - This is a fairly direct and natural translation. ""Omong kosong"" effectively conveys the dismissive and sarcastic tone of ""my ass.""
+*   ""was my instant, and silent, reaction."" -> ""reaksi instan saya, yang tak terucapkan."" - Accurate and reads well. ""Tak terucapkan"" effectively captures the ""silent"" aspect.
+*   ""Why hadn't Sybil hired me to come out here to read his grave first, instead of sending me to the woods to find Teenie?"" -> ""Mengapa Sybil tidak mempekerjakan saya untuk membaca makamnya terlebih dahulu, daripada mengirim saya ke hutan untuk mencari Teenie?"" - Grammatically correct and conveys the meaning accurately. The phrasing is natural in Indonesian.
+*   ""Of course this boy hadn't shot himself."" -> ""Tentu saja anak ini tidak menembak dirinya sendiri."" -  Accurate and natural.
+*   ""Dell Teague had been murdered, just like his wild girlfriend."" -> ""Dell Teague dibunuh, sama seperti kekasihnya yang liar."" - Correct and maintains the meaning.
+*   ""I opened my eyes."" -> ""Saya membuka mata."" - Simple and accurate.
+*   ""Hollis Boxleitner had swung around to check on what I was doing."" -> ""Hollis Boxleitner berbalik untuk melihat apa yang saya lakukan."" - ""Berbalik"" is a good translation for ""swung around"" in this context, implying a quick, turning motion.
+*   ""I looked into the intent face of the deputy."" -> ""Saya menatap wajah serius petugas polisi itu."" - ""Serius"" is a good translation for ""intent"" here, capturing the seriousness of the deputy's expression. ""Petugas polisi itu"" is clear and natural.
+*   ""No suicide here,"" I said. -> ""Tidak ada bunuh diri di sini,"" kataku. - Direct and accurate.
+
+**Overall Coherence:**
+
+The translation is coherent and easy to understand. The flow is natural, and the Indonesian reads smoothly. The translator has successfully captured the informal and somewhat cynical tone of the original English. There are no glaring errors or awkward phrasings.
+
+**Suggestions/Alternatives:**
+
+*   While ""omong kosong"" is good, ""pura-pura bunuh diri"" (pretending to commit suicide) could also be used to emphasize the narrator's disbelief. However, ""omong kosong"" is a more concise and impactful choice.
+*   ""Berbalik"" is a good translation for ""swung around,"" but depending on the context, ""memalingkan badan"" (turning one's body) could also be considered, though it might sound slightly more formal.
+*   The choice of ""petugas polisi itu"" is perfectly acceptable. However, depending on the specific context and the relationship between the characters, ""polisi itu"" (that police officer) could also be used.
+
+--- VERDICT ---
+
+pass",Wed Oct 22 23:01:14 2025,"Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from English to Indonesian.
+
+--- REQUIREMENTS ---
+1.  Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in Indonesian to best convey the original meaning.
+2.  Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
+3.  The final translation must read naturally in the Indonesian. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
+4.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+The output is the clean, final translation in Indonesian with no header or any additional formatting. You must not include any additional commentary or analysis.
+
+","--- CONTEXT ---
+Text type: fictional text, novel excerpt
+Source Language: English
+Target Language: Indonesian
+Notes:     - The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.
+    - Dell Teague, Sybil Teague's son, was Teenie's boyfriend
+            
+
+--- SOURCE TEXT ---
+*Suicide, my ass*, was my instant, and silent, reaction. Why hadn't Sybil hired me to come out here to read his grave first, instead of sending me to the woods to find Teenie? Of course this boy hadn't shot himself. Dell Teague had been murdered, just like his wild girlfriend. I opened my eyes. Hollis Boxleitner had swung around to check on what I was doing. I looked into the intent face of the deputy. ""No suicide here,"" I said.
+
+--- TASK ---
+Provide only the translation following the required output format:
+","Your goal is to ensure that every translation meets the highest standards of quality.
+
+--- REQUIREMENTS ---
+1. The translation must be faithful to the original text in meaning, tone, and style.
+2. The translation must read naturally in the target language.
+3. You must provide constructive feedback highlighting any issues or areas for improvement.
+4. Do not sugarcoat your assessment; be direct and precise.
+5. Avoid vague and broad statements; be specific about what is wrong or right.
+6.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+Your response must include the following sections in order:
+1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
+2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation and provide multiple alternatives or suggestions for each .
+3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
+    - Respond only with ""pass"" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
+    - Otherwise, respond with ""fail""
+
+You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before.
+","
+
+
+--- TASK ---
+Provide the evaluation using the required output structure:
+"
+2,1,1,1011,1.4,827,0.7,"I don't like being treated like a confidence trickster, and I'm sure Tolliver likes it even less. I retreat inside myself, and I don't let them touch my quick. Tolliver tries to do that, too, but he is less successful. He gets very upset when people impugn our honor.","Aku tidak suka diperlakukan seperti penipu ulung, dan aku yakin Tolliver bahkan lebih membencinya. Aku menarik diri ke dalam diriku sendiri, dan aku tidak membiarkan mereka memanfaatkan keahlianku. Tolliver mencoba melakukan hal itu juga, tetapi dia kurang berhasil. Dia sangat kesal ketika orang-orang mencemarkan nama baik kami.",evaluator,N/A,fail,"--- EVALUATION ---
+
+**Analysis:**
+
+The source text uses informal language (""confidence trickster,"" ""impugn our honor"") to convey Harper's annoyance and Tolliver's sensitivity. The tone is somewhat cynical and self-deprecating, highlighting the negative perception Harper and Tolliver face. The phrase ""getting in, getting paid, and getting out fast"" is a key stylistic element, emphasizing the efficiency and transactional nature of their work. A key element is the contrast between the urgency felt by the living and the timelessness of the dead.
+
+**Evaluation:**
+
+The translation is generally accurate but lacks nuance and doesn't fully capture the original's tone and stylistic choices.
+
+*   **""Penipu ulung"" (confidence trickster):** While a literal translation, it feels a bit too strong and lacks the subtle sarcasm implied in ""confidence trickster."" Alternatives: ""seolah-olah penipu"" (as if a trickster), or ""seperti orang yang mencoba menipu"" (like someone trying to deceive).
+*   **""Memanfaatkan keahlianku"" (exploit my skills):** This is a rather literal translation of ""let them touch my quick."" The original idiom implies a vulnerability being exploited; this translation is too clinical. Better options: ""membiarkan mereka mengambil keuntungan dariku"" (let them take advantage of me), or ""tidak membiarkan mereka memanfaatkan kelemahan saya"" (not letting them exploit my weakness). The original phrasing suggests a more personal and potentially physical vulnerability.
+*   **""Kurang berhasil"" (less successful):** This is a very plain way of saying ""less successful."" It lacks the slightly sharper tone of the original. Alternatives: ""tidak sehandal itu"" (not as skilled), or ""tidak secepat itu"" (not as quick).
+*   **""Mencemarkan nama baik kami"" (defame our honor):** This is accurate but sounds a bit formal and literary in Indonesian, clashing with the overall tone of the passage. A more natural phrasing would be: ""mengkritik kami"" (criticize us), or ""menuduh kami melakukan kesalahan"" (accuse us of making mistakes). The original's phrasing is more about a feeling of personal affront than a formal defamation.
+*   **Overall Coherence:** The translation is understandable, but the sentence flow isn't as smooth or impactful as the original. It lacks the punchiness of the original phrases. The translation feels somewhat stiff and doesn't quite capture the conversational tone. The use of ""kami"" (us) feels slightly odd, as if referring to a professional identity rather than a personal one.
+
+The translation correctly identifies the main points of the text, but the word choices and phrasing could be more evocative and natural. The translation is functional but lacks stylistic finesse.
+
+--- VERDICT ---
+
+fail",Wed Oct 22 23:01:43 2025,"Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from English to Indonesian.
+
+--- REQUIREMENTS ---
+1.  Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in Indonesian to best convey the original meaning.
+2.  Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
+3.  The final translation must read naturally in the Indonesian. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
+4.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+The output is the clean, final translation in Indonesian with no header or any additional formatting. You must not include any additional commentary or analysis.
+
+","--- CONTEXT ---
+Text type: fictional text, novel excerpt
+Source Language: English
+Target Language: Indonesian
+Notes:     - The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.
+            
+
+--- SOURCE TEXT ---
+I don't like being treated like a confidence trickster, and I'm sure Tolliver likes it even less. I retreat inside myself, and I don't let them touch my quick. Tolliver tries to do that, too, but he is less successful. He gets very upset when people impugn our honor.
+
+--- TASK ---
+Provide only the translation following the required output format:
+","Your goal is to ensure that every translation meets the highest standards of quality.
+
+--- REQUIREMENTS ---
+1. The translation must be faithful to the original text in meaning, tone, and style.
+2. The translation must read naturally in the target language.
+3. You must provide constructive feedback highlighting any issues or areas for improvement.
+4. Do not sugarcoat your assessment; be direct and precise.
+5. Avoid vague and broad statements; be specific about what is wrong or right.
+6.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+Your response must include the following sections in order:
+1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
+2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation and provide multiple alternatives or suggestions for each .
+3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
+    - Respond only with ""pass"" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
+    - Otherwise, respond with ""fail""
+
+You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before.
+","
+
+
+--- TASK ---
+Provide the evaluation using the required output structure:
+"
+2,1,2,1012,1.0,827,0.7,"I don't like being treated like a confidence trickster, and I'm sure Tolliver likes it even less. I retreat inside myself, and I don't let them touch my quick. Tolliver tries to do that, too, but he is less successful. He gets very upset when people impugn our honor.","Aku tidak suka diperlakukan seperti orang yang mencoba menipu, dan aku yakin Tolliver bahkan lebih kesal. Aku menarik diri, tidak membiarkan mereka mengambil keuntungan dariku. Tolliver mencoba melakukan hal itu juga, tetapi dia tidak sehandal itu. Dia sangat kesal ketika orang-orang mengkritik kami.",evaluator,N/A,pass,"--- EVALUATION ---
+
+**Analysis:**
+
+The source text uses informal language (""confidence trickster,"" ""impugn our honor"") to convey Harper's annoyance and Tolliver's sensitivity. The tone is somewhat cynical and self-deprecating, highlighting the negative perception Harper and Tolliver face. The phrase ""getting in, getting paid, and getting out fast"" is a key stylistic element, emphasizing the efficiency and transactional nature of their work. A key element is the contrast between the urgency felt by the living and the timelessness of the dead.
+
+**Evaluation:**
+
+The revised translation is a significant improvement. It addresses the issues raised in the previous evaluation and more accurately captures the original's tone and style.
+
+*   **""Orang yang mencoba menipu"" (someone trying to deceive):** This is a better alternative to ""penipu ulung"" as it conveys the intended meaning without being overly strong or sarcastic.
+*   **""Tidak membiarkan mereka mengambil keuntungan dariku"" (not letting them take advantage of me):** This is a much stronger and more accurate translation of ""let them touch my quick,"" capturing the sense of vulnerability and exploitation.
+*   **""Tidak sehandal itu"" (not as skilled):** This is a more natural and less formal way of saying ""less successful"" than the previous translation. It maintains a similar level of informality.
+*   **""Mengkritik kami"" (criticize us):** This is a better and more natural alternative to ""mencemarkan nama baik kami,"" avoiding the overly formal tone of the previous attempt.
+*   **Overall Coherence:** The revised translation flows much more smoothly and feels more natural in Indonesian. The word choices are more evocative and better reflect the original's conversational tone. The use of ""kami"" (us) feels more appropriate in this context, referring to their shared profession and experience. The revised version successfully maintains the cynical and self-deprecating tone of the original.
+
+The revised translation successfully balances accuracy with stylistic fidelity, resulting in a more compelling and natural-sounding Indonesian version.
+
+--- VERDICT ---
+
+pass",Wed Oct 22 23:02:17 2025,"Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from English to Indonesian.
+
+--- REQUIREMENTS ---
+1.  Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in Indonesian to best convey the original meaning.
+2.  Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
+3.  The final translation must read naturally in the Indonesian. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
+4.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+The output is the clean, final translation in Indonesian with no header or any additional formatting. You must not include any additional commentary or analysis.
+
+","A previous translation attempt was evaluated.
+
+Your task is to consider the editor's feedback and then revise the translation accordingly. 
+
+
+
+--- TASK ---
+Provide only the revised translation following the required output format:
+","Your goal is to ensure that every translation meets the highest standards of quality.
+
+--- REQUIREMENTS ---
+1. The translation must be faithful to the original text in meaning, tone, and style.
+2. The translation must read naturally in the target language.
+3. You must provide constructive feedback highlighting any issues or areas for improvement.
+4. Do not sugarcoat your assessment; be direct and precise.
+5. Avoid vague and broad statements; be specific about what is wrong or right.
+6.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+Your response must include the following sections in order:
+1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
+2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation and provide multiple alternatives or suggestions for each .
+3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
+    - Respond only with ""pass"" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
+    - Otherwise, respond with ""fail""
+
+You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before.
+","
+
+
+--- TASK ---
+Provide the evaluation using the required output structure:
+"
+2,2,1,2021,1.4,927,0.7,"I don't like being treated like a confidence trickster, and I'm sure Tolliver likes it even less. I retreat inside myself, and I don't let them touch my quick. Tolliver tries to do that, too, but he is less successful. He gets very upset when people impugn our honor.","Saya tidak suka diperlakukan seperti penipu ulung, dan saya yakin Tolliver bahkan lebih tidak suka. Saya menarik diri ke dalam diri saya sendiri, dan tidak membiarkan mereka memanfaatkan kecerdikan saya. Tolliver mencoba melakukan hal itu juga, tetapi dia kurang berhasil. Dia sangat kesal ketika orang-orang mencemarkan nama baik kami.",evaluator,N/A,fail,"--- EVALUATION ---
+
+**Analysis:**
+
+The source text uses informal language (""confidence trickster,"" ""impugn our honor"") to convey Harper's annoyance and Tolliver's sensitivity. The tone is somewhat cynical and slightly humorous. The key is capturing Harper's internal state of defensiveness and Tolliver's pride. The phrase ""getting in, getting paid, and getting out fast"" highlights Harper's efficiency and pragmatic approach to her unusual profession.
+
+**Evaluation:**
+
+The translation is generally accurate but lacks nuance and naturalness.
+
+*   **""penipu ulung""**: While ""penipu ulung"" translates to ""skilled swindler,"" it's a bit too strong. ""Penipu"" (swindler) is accurate but doesn't quite capture the subtle annoyance Harper feels. A better option would be ""orang yang memanfaatkan kepercayaan orang lain"" (someone who exploits people's trust) which is more descriptive and less judgmental.
+*   **""memanfaatkan kecerdikan saya""**: This translates to ""exploit my cleverness."" While technically correct, it's not idiomatic. A more natural phrasing would be ""memainkan kecerdikanku"" (play with my cleverness) or ""memanfaatkan kepintaranku"" (exploit my intelligence).
+*   **""kurang berhasil""**: This is a straightforward translation of ""less successful"" and is grammatically correct, but lacks the subtle implication of Tolliver's strong reaction. Something like ""tidak sekuat saya"" (not as strong as I am) might better convey the idea of him being less adept at protecting their reputation.
+*   **""mencemarkan nama baik kami""**: This is a standard translation of ""impugn our honor"" and is acceptable. However, it's a bit formal and could be made more impactful. ""Menghina reputasi kami"" (insult our reputation) might be a stronger choice, depending on the desired tone.
+
+**Overall Coherence:**
+
+The translation is understandable, but it feels somewhat stiff and lacks the sharpness of the original. The phrasing is a bit too literal in places, which diminishes the impact of Harper's personality and Tolliver's reaction. The overall effect is a slightly less compelling portrayal of the scene.
+
+
+
+--- VERDICT ---
+fail",Wed Oct 22 23:02:42 2025,"Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from English to Indonesian.
+
+--- REQUIREMENTS ---
+1.  Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in Indonesian to best convey the original meaning.
+2.  Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
+3.  The final translation must read naturally in the Indonesian. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
+4.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+The output is the clean, final translation in Indonesian with no header or any additional formatting. You must not include any additional commentary or analysis.
+
+","--- CONTEXT ---
+Text type: fictional text, novel excerpt
+Source Language: English
+Target Language: Indonesian
+Notes:     - The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.
+            
+
+--- SOURCE TEXT ---
+I don't like being treated like a confidence trickster, and I'm sure Tolliver likes it even less. I retreat inside myself, and I don't let them touch my quick. Tolliver tries to do that, too, but he is less successful. He gets very upset when people impugn our honor.
+
+--- TASK ---
+Provide only the translation following the required output format:
+","Your goal is to ensure that every translation meets the highest standards of quality.
+
+--- REQUIREMENTS ---
+1. The translation must be faithful to the original text in meaning, tone, and style.
+2. The translation must read naturally in the target language.
+3. You must provide constructive feedback highlighting any issues or areas for improvement.
+4. Do not sugarcoat your assessment; be direct and precise.
+5. Avoid vague and broad statements; be specific about what is wrong or right.
+6.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+Your response must include the following sections in order:
+1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
+2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation and provide multiple alternatives or suggestions for each .
+3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
+    - Respond only with ""pass"" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
+    - Otherwise, respond with ""fail""
+
+You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before.
+","
+
+
+--- TASK ---
+Provide the evaluation using the required output structure:
+"
+2,2,2,2022,1.0,927,0.7,"I don't like being treated like a confidence trickster, and I'm sure Tolliver likes it even less. I retreat inside myself, and I don't let them touch my quick. Tolliver tries to do that, too, but he is less successful. He gets very upset when people impugn our honor.","Saya tidak suka diperlakukan seperti orang yang memanfaatkan kepercayaan orang lain, dan saya yakin Tolliver bahkan lebih tidak suka. Saya menarik diri ke dalam diri saya sendiri, dan tidak membiarkan mereka memanipulasi kecerdikanku. Tolliver mencoba melakukan hal itu juga, tetapi dia tidak sekuat saya. Dia sangat kesal ketika orang-orang menghina reputasi kami.",evaluator,N/A,pass,"--- EVALUATION ---
+
+**Analysis:**
+
+The previous translation attempted to address some of the issues raised, focusing on more idiomatic phrasing and a slightly stronger tone. The key changes were replacing ""penipu ulung"" with a more descriptive phrase and altering the phrasing around ""memanfaatkan kecerdikanku"" to be more natural. The goal is to maintain the original meaning while enhancing the naturalness and impact of the Indonesian text.
+
+**Evaluation:**
+
+The revised translation is a significant improvement over the initial attempt. The changes made address the previous feedback effectively.
+
+*   **""orang yang memanfaatkan kepercayaan orang lain""**: This is a much better choice than ""penipu ulung"" as it conveys the core meaning of Harper's frustration without being overly harsh.
+*   **""memainkan kecerdikanku""**: This is a more natural and idiomatic way to express ""play with my cleverness"" than the previous attempt. It subtly captures the idea of Harper actively resisting manipulation.
+*   **""tidak sekuat saya""**: This is a more nuanced and natural way to express ""less successful"" in the context of Tolliver's protective instincts. It avoids the slightly awkward phrasing of the previous translation.
+*   **""menghina reputasi kami""**: This is a solid choice, providing a stronger emotional impact than a more literal translation.
+
+**Overall Coherence:**
+
+The revised translation reads much more naturally and effectively conveys the original meaning. The changes improve the flow and impact of the text, making it a more compelling portrayal of the scene. The tone is more consistent with the original, and the nuances of Harper's and Tolliver's personalities are better captured.
+
+--- VERDICT ---
+pass",Wed Oct 22 23:03:12 2025,"Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from English to Indonesian.
+
+--- REQUIREMENTS ---
+1.  Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in Indonesian to best convey the original meaning.
+2.  Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
+3.  The final translation must read naturally in the Indonesian. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
+4.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+The output is the clean, final translation in Indonesian with no header or any additional formatting. You must not include any additional commentary or analysis.
+
+","A previous translation attempt was evaluated.
+
+Your task is to consider the editor's feedback and then revise the translation accordingly. 
+
+
+
+--- TASK ---
+Provide only the revised translation following the required output format:
+","Your goal is to ensure that every translation meets the highest standards of quality.
+
+--- REQUIREMENTS ---
+1. The translation must be faithful to the original text in meaning, tone, and style.
+2. The translation must read naturally in the target language.
+3. You must provide constructive feedback highlighting any issues or areas for improvement.
+4. Do not sugarcoat your assessment; be direct and precise.
+5. Avoid vague and broad statements; be specific about what is wrong or right.
+6.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+Your response must include the following sections in order:
+1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
+2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation and provide multiple alternatives or suggestions for each .
+3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
+    - Respond only with ""pass"" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
+    - Otherwise, respond with ""fail""
+
+You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before.
+","
+
+
+--- TASK ---
+Provide the evaluation using the required output structure:
+"
+3,1,1,1011,1.4,827,0.7,"""Tell me about your dream house,"" Hollis said, smiling.
+
+""Okay,"" I said, slowly. This was something I didn't talk about too often. ""It will have to be off the beaten road, of course. I want it to look like a log cabin, but without the inconveniences of a real log cabin. I found a plan on the Internet, and I bought it. But of course, I want to alter it a little.""
+
+""Of course,"" he said, taking a sip of beer.","""Ceritakan tentang rumah impianmu,"" kata Hollis sambil tersenyum.
+
+""Baiklah,"" jawabku, perlahan. Ini adalah sesuatu yang jarang sekali saya bicarakan. ""Tentu saja, rumah itu harus jauh dari jalan utama. Saya ingin tampilannya seperti kabin kayu, tapi tanpa ketidaknyamanan kabin kayu sungguhan. Saya menemukan rancangannya di internet, dan saya membelinya. Tapi tentu saja, saya ingin mengubahnya sedikit.""
+
+""Tentu saja,"" katanya, menyesap birnya.",evaluator,N/A,fail,"--- EVALUATION ---
+
+**Analysis:**
+
+The source text presents a casual conversation between two characters. The tone is light and conversational, with a hint of introspection from the speaker, Hollis. The style is straightforward and descriptive, focusing on details of a dream house. The challenge lies in conveying the natural flow of dialogue and the subtle nuances of the language in Indonesian. The phrase ""off the beaten road"" needs a natural equivalent that captures the meaning of being secluded or remote. The slightly formal ""alter it a little"" requires a phrase that sounds natural in Indonesian while retaining the sense of minor modifications.
+
+**Evaluation:**
+
+The translation is generally accurate but lacks subtlety and naturalness in places.
+
+*   **""Tell me about your dream house,"" Hollis said, smiling.** - This is a good, direct translation and accurate.
+*   **""Okay,"" I said, slowly. This was something I didn't talk about too often.** - ""Baiklah, jawabku, perlahan. Ini adalah sesuatu yang jarang sekali saya bicarakan."" While grammatically correct, ""jarang sekali"" feels a little stiff. A more natural phrasing might be ""Baiklah, jawabku, pelan-pelan. Ini bukan sesuatu yang sering saya ceritakan."" (Okay, I answered, slowly. This isn't something I often talk about.)
+*   **""It will have to be off the beaten road, of course. I want it to look like a log cabin, but without the inconveniences of a real log cabin. I found a plan on the Internet, and I bought it. But of course, I want to alter it a little.""** - ""Tentu saja, rumah itu harus jauh dari jalan utama. Saya ingin tampilannya seperti kabin kayu, tapi tanpa ketidaknyamanan kabin kayu sungguhan. Saya menemukan rancangannya di internet, dan saya membelinya. Tapi tentu saja, saya ingin mengubahnya sedikit."" The translation is mostly accurate, but ""jauh dari jalan utama"" is a literal translation of ""off the beaten road"" and isn't as idiomatic as it could be. ""Ketidaknyamanan kabin kayu sungguhan"" is also a bit clunky. ""Saya ingin mengubahnya sedikit"" is also a bit formal. Better alternatives include: ""Tentu saja, rumah itu harus terletak di tempat yang terpencil. Saya ingin rumah itu terlihat seperti kabin kayu, tetapi tanpa masalah yang biasanya ada di kabin kayu asli. Saya menemukan desainnya di internet dan membelinya. Tentu saja, saya ingin sedikit memodifikasinya.""
+*   **""Of course,"" he said, taking a sip of beer.** - ""Tentu saja, katanya, menyesap birnya."" This is a good, direct translation.
+
+**Specific Issues & Suggestions:**
+
+*   The repetition of ""Tentu saja"" (""Of course"") feels slightly unnatural. Consider varying the phrasing or omitting it where possible.
+*   The phrasing ""mengubahnya sedikit"" (""to change it a little"") is a bit too formal and lacks nuance. Consider using something like ""memodifikasinya"" (to modify it) or ""memberi sentuhan pribadi"" (to add a personal touch) depending on the desired tone.
+*   The sentence structure in the Indonesian translation is a bit too literal, making it sound slightly unnatural. Rephrasing certain parts can improve the flow and readability.
+
+Overall, the translation is understandable, but it lacks the naturalness and stylistic flair of a native speaker. More attention should be paid to idiomatic expressions and sentence structure to create a more fluent and engaging Indonesian text.
+
+--- VERDICT ---
+
+fail",Wed Oct 22 23:03:47 2025,"Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from English to Indonesian.
+
+--- REQUIREMENTS ---
+1.  Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in Indonesian to best convey the original meaning.
+2.  Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
+3.  The final translation must read naturally in the Indonesian. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
+4.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+The output is the clean, final translation in Indonesian with no header or any additional formatting. You must not include any additional commentary or analysis.
+
+","--- CONTEXT ---
+Text type: fictional text, novel excerpt
+Source Language: English
+Target Language: Indonesian
+Notes:     - The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.
+            
+
+--- SOURCE TEXT ---
+""Tell me about your dream house,"" Hollis said, smiling.
+
+""Okay,"" I said, slowly. This was something I didn't talk about too often. ""It will have to be off the beaten road, of course. I want it to look like a log cabin, but without the inconveniences of a real log cabin. I found a plan on the Internet, and I bought it. But of course, I want to alter it a little.""
+
+""Of course,"" he said, taking a sip of beer.
+
+--- TASK ---
+Provide only the translation following the required output format:
+","Your goal is to ensure that every translation meets the highest standards of quality.
+
+--- REQUIREMENTS ---
+1. The translation must be faithful to the original text in meaning, tone, and style.
+2. The translation must read naturally in the target language.
+3. You must provide constructive feedback highlighting any issues or areas for improvement.
+4. Do not sugarcoat your assessment; be direct and precise.
+5. Avoid vague and broad statements; be specific about what is wrong or right.
+6.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+Your response must include the following sections in order:
+1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
+2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation and provide multiple alternatives or suggestions for each .
+3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
+    - Respond only with ""pass"" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
+    - Otherwise, respond with ""fail""
+
+You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before.
+","
+
+
+--- TASK ---
+Provide the evaluation using the required output structure:
+"
+3,1,2,1012,1.0,827,0.7,"""Tell me about your dream house,"" Hollis said, smiling.
+
+""Okay,"" I said, slowly. This was something I didn't talk about too often. ""It will have to be off the beaten road, of course. I want it to look like a log cabin, but without the inconveniences of a real log cabin. I found a plan on the Internet, and I bought it. But of course, I want to alter it a little.""
+
+""Of course,"" he said, taking a sip of beer.","""Ceritakan tentang rumah impianmu,"" kata Hollis sambil tersenyum.
+
+""Baiklah,"" jawabku, pelan-pelan. Ini bukan sesuatu yang sering saya ceritakan. ""Tentu saja, rumah itu harus terletak di tempat yang terpencil. Saya ingin rumah itu terlihat seperti kabin kayu, tetapi tanpa masalah yang biasanya ada di kabin kayu asli. Saya menemukan desainnya di internet dan membelinya. Tentu saja, saya ingin sedikit memodifikasinya.""
+
+""Tentu saja,"" katanya, menyesap birnya.",evaluator,N/A,pass,"--- EVALUATION ---
+
+**Analysis:**
+
+The previous translation was flagged for being too literal and lacking natural flow. The feedback specifically pointed to the phrasing ""jarang sekali"" and ""mengubahnya sedikit"" as being stilted. The goal of the revision is to address these issues by using more idiomatic expressions and a slightly more relaxed tone. The changes aim to create a more natural and engaging read for Indonesian speakers.
+
+**Evaluation:**
+
+The revised translation demonstrates improvement in naturalness and flow compared to the previous attempt. The changes effectively address the issues identified in the previous evaluation.
+
+*   **""Ceritakan tentang rumah impianmu,"" kata Hollis sambil tersenyum.** - Remains accurate and natural.
+*   **""Baiklah,"" jawabku, pelan-pelan. Ini bukan sesuatu yang sering saya ceritakan.** - The replacement of ""jarang sekali"" with ""bukan sesuatu yang sering saya ceritakan"" is a significant improvement. It sounds more natural and conversational. ""Pelan-pelan"" is a good addition to convey the deliberate pace.
+*   **""Tentu saja, rumah itu harus terletak di tempat yang terpencil. Saya ingin rumah itu terlihat seperti kabin kayu, tetapi tanpa masalah yang biasanya ada di kabin kayu asli. Saya menemukan desainnya di internet dan membelinya. Tentu saja, saya ingin sedikit memodifikasinya.""** - The rephrasing of the sentence is effective. The use of ""terpencil"" (remote) is more idiomatic than a literal translation of ""off the beaten road."" The phrase ""tanpa masalah yang biasanya ada di kabin kayu asli"" (without the problems usually found in an original log cabin) is clearer and more natural than ""ketidaknyamanan kabin kayu sungguhan.""  ""Sedikit memodifikasinya"" is a good choice, conveying the idea of minor alterations without being overly formal.
+*   **""Tentu saja,"" katanya, menyesap birnya.** - Remains accurate and natural.
+
+**Specific Improvements:**
+
+*   The use of ""bukan sesuatu yang sering saya ceritakan"" is a more natural way to express the idea of not talking about something often.
+*   The rephrasing of the description of the dream house is more fluent and avoids overly literal translations.
+*   The overall tone is slightly more conversational and less formal.
+
+**Remaining Considerations:**
+
+While improved, the translation could still benefit from subtle adjustments to further enhance its naturalness. For instance, the repetition of ""Tentu saja"" could be reduced or rephrased in other parts of the text. However, the revisions represent a significant step forward and effectively address the major issues identified in the previous evaluation.
+
+--- VERDICT ---
+
+pass",Wed Oct 22 23:04:29 2025,"Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from English to Indonesian.
+
+--- REQUIREMENTS ---
+1.  Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in Indonesian to best convey the original meaning.
+2.  Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
+3.  The final translation must read naturally in the Indonesian. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
+4.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+The output is the clean, final translation in Indonesian with no header or any additional formatting. You must not include any additional commentary or analysis.
+
+","A previous translation attempt was evaluated.
+
+Your task is to consider the editor's feedback and then revise the translation accordingly. 
+
+
+
+--- TASK ---
+Provide only the revised translation following the required output format:
+","Your goal is to ensure that every translation meets the highest standards of quality.
+
+--- REQUIREMENTS ---
+1. The translation must be faithful to the original text in meaning, tone, and style.
+2. The translation must read naturally in the target language.
+3. You must provide constructive feedback highlighting any issues or areas for improvement.
+4. Do not sugarcoat your assessment; be direct and precise.
+5. Avoid vague and broad statements; be specific about what is wrong or right.
+6.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+Your response must include the following sections in order:
+1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
+2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation and provide multiple alternatives or suggestions for each .
+3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
+    - Respond only with ""pass"" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
+    - Otherwise, respond with ""fail""
+
+You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before.
+","
+
+
+--- TASK ---
+Provide the evaluation using the required output structure:
+"
+3,2,1,2021,1.4,927,0.7,"""Tell me about your dream house,"" Hollis said, smiling.
+
+""Okay,"" I said, slowly. This was something I didn't talk about too often. ""It will have to be off the beaten road, of course. I want it to look like a log cabin, but without the inconveniences of a real log cabin. I found a plan on the Internet, and I bought it. But of course, I want to alter it a little.""
+
+""Of course,"" he said, taking a sip of beer.","""Ceritakan tentang rumah impianmu,"" kata Hollis sambil tersenyum.
+
+""Baiklah,"" jawabku, perlahan. Ini adalah sesuatu yang jarang sekali ku bicarakan. ""Tentu saja, rumah itu harus berada di luar jalur yang umum. Aku ingin tampilannya seperti kabin kayu, tapi tanpa ketidaknyamanan kabin kayu yang sebenarnya. Aku menemukan rancangannya di internet, dan membelinya. Tapi tentu saja, aku ingin mengubahnya sedikit.""
+
+""Tentu,"" katanya, sambil menyesap bir.",evaluator,N/A,fail,"--- EVALUATION ---
+
+**Clause-by-Clause & Phrase-by-Phrase Evaluation:**
+
+*   **""Tell me about your dream house,"" Hollis said, smiling.** - ""Ceritakan tentang rumah impianmu,"" kata Hollis sambil tersenyum. This is a direct and accurate translation. ""Sambil tersenyum"" is a good equivalent for ""smiling"" in this context.
+
+*   **""Okay,"" I said, slowly. This was something I didn't talk about too often.** - ""Baiklah,"" jawabku, perlahan. Ini adalah sesuatu yang jarang sekali ku bicarakan.  ""Baiklah"" is a suitable translation for ""Okay."" ""Perlahan"" effectively conveys ""slowly."" ""Yang jarang sekali ku bicarakan"" accurately captures the nuance of ""didn't talk about too often.""
+
+*   **""It will have to be off the beaten road, of course. I want it to look like a log cabin, but without the inconveniences of a real log cabin. I found a plan on the Internet, and I bought it. But of course, I want to alter it a little.""** - ""Tentu saja, rumah itu harus berada di luar jalur yang umum. Aku ingin tampilannya seperti kabin kayu, tapi tanpa ketidaknyamanan kabin kayu yang sebenarnya. Aku menemukan rancangannya di internet, dan membelinya. Tapi tentu saja, aku ingin mengubahnya sedikit."" This is largely accurate, but the phrasing could be smoother. ""Di luar jalur yang umum"" is a good translation for ""off the beaten road."" ""Tampilannya seperti kabin kayu"" is a natural way to say ""look like a log cabin.""  ""Ketidaknyamanan kabin kayu yang sebenarnya"" is a bit clunky.  A more natural phrasing might be ""tanpa masalah yang biasa ada di kabin kayu.""  ""Rancangannya di internet"" is correct, but ""desainnya"" could be a slightly more elegant alternative. ""Mengubahnya sedikit"" is accurate, but could be more emphatic, such as ""mengubahnya sedikit saja"" (to change it just a little).
+
+*   **""Of course,"" he said, taking a sip of beer.** - ""Tentu,"" katanya, sambil menyesap bir.  This is a perfect translation.
+
+**Overall Coherence:**
+
+The translation is generally coherent and understandable. The word choices are appropriate, and the sentence structure is natural. However, the translation leans towards a more literal translation, which sometimes results in slightly awkward phrasing. There's room for improvement in making the Indonesian flow more smoothly and sound more idiomatic. The repetition of ""Tentu saja"" (Of course) could be slightly adjusted for a more natural feel, perhaps by varying the phrasing or omitting it in some instances.
+
+**Specific Issues & Suggestions:**
+
+*   **""Ketidaknyamanan kabin kayu yang sebenarnya""**: Consider ""tanpa masalah yang biasa ada di kabin kayu"" or ""tanpa kekurangan kabin kayu yang sebenarnya.""
+*   **""Rancangannya di internet""**: Consider ""desainnya di internet"".
+*   **Repetition of ""Tentu saja""**: In the full text, consider varying the phrasing or removing it where appropriate.
+
+
+
+--- VERDICT ---
+
+fail",Wed Oct 22 23:05:03 2025,"Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from English to Indonesian.
+
+--- REQUIREMENTS ---
+1.  Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in Indonesian to best convey the original meaning.
+2.  Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
+3.  The final translation must read naturally in the Indonesian. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
+4.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+The output is the clean, final translation in Indonesian with no header or any additional formatting. You must not include any additional commentary or analysis.
+
+","--- CONTEXT ---
+Text type: fictional text, novel excerpt
+Source Language: English
+Target Language: Indonesian
+Notes:     - The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.
+            
+
+--- SOURCE TEXT ---
+""Tell me about your dream house,"" Hollis said, smiling.
+
+""Okay,"" I said, slowly. This was something I didn't talk about too often. ""It will have to be off the beaten road, of course. I want it to look like a log cabin, but without the inconveniences of a real log cabin. I found a plan on the Internet, and I bought it. But of course, I want to alter it a little.""
+
+""Of course,"" he said, taking a sip of beer.
+
+--- TASK ---
+Provide only the translation following the required output format:
+","Your goal is to ensure that every translation meets the highest standards of quality.
+
+--- REQUIREMENTS ---
+1. The translation must be faithful to the original text in meaning, tone, and style.
+2. The translation must read naturally in the target language.
+3. You must provide constructive feedback highlighting any issues or areas for improvement.
+4. Do not sugarcoat your assessment; be direct and precise.
+5. Avoid vague and broad statements; be specific about what is wrong or right.
+6.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+Your response must include the following sections in order:
+1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
+2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation and provide multiple alternatives or suggestions for each .
+3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
+    - Respond only with ""pass"" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
+    - Otherwise, respond with ""fail""
+
+You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before.
+","
+
+
+--- TASK ---
+Provide the evaluation using the required output structure:
+"
+3,2,2,2022,1.0,927,0.7,"""Tell me about your dream house,"" Hollis said, smiling.
+
+""Okay,"" I said, slowly. This was something I didn't talk about too often. ""It will have to be off the beaten road, of course. I want it to look like a log cabin, but without the inconveniences of a real log cabin. I found a plan on the Internet, and I bought it. But of course, I want to alter it a little.""
+
+""Of course,"" he said, taking a sip of beer.","""Ceritakan tentang rumah impianmu,"" kata Hollis sambil tersenyum.
+
+""Baiklah,"" jawabku, perlahan. Ini adalah sesuatu yang jarang sekali ku bicarakan. ""Tentu saja, rumah itu harus berada di luar jalur yang umum. Aku ingin tampilannya seperti kabin kayu, tetapi tanpa masalah yang biasa ada di kabin kayu. Aku menemukan desainnya di internet, dan membelinya. Tapi tentu saja, aku ingin mengubahnya sedikit saja.""
+
+""Tentu,"" katanya, sambil menyesap bir.",evaluator,N/A,pass,"--- EVALUATION ---
+
+**Clause-by-Clause & Phrase-by-Phrase Evaluation:**
+
+*   **""Ceritakan tentang rumah impianmu,"" kata Hollis sambil tersenyum.** - ""Tell me about your dream house,"" Hollis said, smiling. This remains a strong, accurate translation.
+
+*   **""Baiklah,"" jawabku, perlahan. Ini adalah sesuatu yang jarang sekali ku bicarakan.** - ""Okay,"" I said, slowly. This is a good translation. ""Perlahan"" effectively conveys ""slowly."" ""Ini adalah sesuatu yang jarang sekali ku bicarakan"" accurately captures the nuance of ""didn't talk about too often.""
+
+*   **""Tentu saja, rumah itu harus berada di luar jalur yang umum. Aku ingin tampilannya seperti kabin kayu, tetapi tanpa masalah yang biasa ada di kabin kayu. Aku menemukan desainnya di internet, dan membelinya. Tapi tentu saja, aku ingin mengubahnya sedikit saja.""** - ""Tentu saja, rumah itu harus berada di luar jalur yang umum. Aku ingin tampilannya seperti kabin kayu, tetapi tanpa masalah yang biasa ada di kabin kayu. Aku menemukan desainnya di internet, dan membelinya. Tapi tentu saja, aku ingin mengubahnya sedikit saja.""  The changes implemented address the previous feedback. ""Di luar jalur yang umum"" is a good translation for ""off the beaten road."" ""Tampilannya seperti kabin kayu"" is a natural way to say ""look like a log cabin."" ""Tanpa masalah yang biasa ada di kabin kayu"" is a smoother and more idiomatic way of saying ""without the inconveniences of a real log cabin."" ""Desainnya di internet"" is a more elegant alternative to ""rancangannya di internet.""  ""Sedikit saja"" adds emphasis to the degree of alteration.
+
+*   **""Tentu,"" katanya, sambil menyesap bir.** - ""Of course,"" he said, taking a sip of beer. This is a perfect translation.
+
+**Overall Coherence:**
+
+The revised translation is significantly improved. The phrasing is more natural and flows better in Indonesian. The changes address the previous concerns about clunkiness and awkwardness. The overall tone and meaning are preserved accurately.
+
+**Specific Improvements:**
+
+*   The change from ""ketidaknyamanan kabin kayu yang sebenarnya"" to ""tanpa masalah yang biasa ada di kabin kayu"" makes the sentence much more natural.
+*   Using ""desainnya"" instead of ""rancangannya"" elevates the language.
+*   Adding ""sedikit saja"" adds emphasis and improves the flow.
+*   The repetition of ""Tentu saja"" is handled well, maintaining the original meaning without sounding overly repetitive.
+
+--- VERDICT ---
+
+pass",Wed Oct 22 23:05:43 2025,"Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from English to Indonesian.
+
+--- REQUIREMENTS ---
+1.  Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in Indonesian to best convey the original meaning.
+2.  Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
+3.  The final translation must read naturally in the Indonesian. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
+4.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+The output is the clean, final translation in Indonesian with no header or any additional formatting. You must not include any additional commentary or analysis.
+
+","A previous translation attempt was evaluated.
+
+Your task is to consider the editor's feedback and then revise the translation accordingly. 
+
+
+
+--- TASK ---
+Provide only the revised translation following the required output format:
+","Your goal is to ensure that every translation meets the highest standards of quality.
+
+--- REQUIREMENTS ---
+1. The translation must be faithful to the original text in meaning, tone, and style.
+2. The translation must read naturally in the target language.
+3. You must provide constructive feedback highlighting any issues or areas for improvement.
+4. Do not sugarcoat your assessment; be direct and precise.
+5. Avoid vague and broad statements; be specific about what is wrong or right.
+6.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+Your response must include the following sections in order:
+1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
+2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation and provide multiple alternatives or suggestions for each .
+3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
+    - Respond only with ""pass"" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
+    - Otherwise, respond with ""fail""
+
+You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before.
+","
+
+
+--- TASK ---
+Provide the evaluation using the required output structure:
+"
+4,1,1,1011,1.4,827,0.7,"It would be two bedrooms and a study, with a family room. There'd be a kitchen here, with the washroom right off of it."" I was looking down at the table, drawing with my finger. ""Around back, there'd be a *porte cochere* for the cars, so you could carry groceries right into the kitchen without getting wet. There's a deck off the right side of the kitchen, see? Or maybe I'd put it off the family room. That's where the fireplace will be, and you could keep your firewood on the deck. And you could put your gas grill on the deck. For steaks.""","Akan ada dua kamar tidur dan ruang kerja, serta ruang keluarga. Ada dapur di sini, dengan kamar mandi tepat di sampingnya. Aku menunduk, menggambar dengan jariku di meja. Di bagian belakang, akan ada *porte cochere* untuk mobil, jadi Anda bisa membawa belanjaan langsung ke dapur tanpa basah. Ada teras di sisi kanan dapur, tahu? Atau mungkin aku akan menempatkannya di sisi ruang keluarga. Di sanalah perapian akan berada, dan Anda bisa menyimpan kayu bakar di teras. Dan Anda bisa meletakkan kompor gas di teras. Untuk steak.",evaluator,N/A,fail,"--- EVALUATION ---
+
+**Overall Coherence:** The translation is generally understandable, but lacks natural flow and precision. It feels somewhat literal and doesn't fully capture the conversational tone of the original. The use of ""Anda"" (formal you) throughout makes it sound overly polite and unnatural for a casual conversation.
+
+**Clause-by-Clause/Phrase-by-Phrase Analysis:**
+
+*   **""It would be two bedrooms and a study, with a family room.""**
+    *   Translation: ""Akan ada dua kamar tidur dan ruang kerja, serta ruang keluarga.""
+    *   Analysis: Accurate and natural. No issues.
+*   **""There'd be a kitchen here, with the washroom right off of it.""**
+    *   Translation: ""Ada dapur di sini, dengan kamar mandi tepat di sampingnya.""
+    *   Analysis: ""tepat di sampingnya"" is a bit clunky. ""di sebelah kamar mandi"" or ""berdekatan dengan kamar mandi"" would be smoother.
+*   **""I was looking down at the table, drawing with my finger.""**
+    *   Translation: ""Aku menunduk, menggambar dengan jariku di meja.""
+    *   Analysis: Accurate and natural. No issues.
+*   **""Around back, there'd be a *porte cochere* for the cars, so you could carry groceries right into the kitchen without getting wet.""**
+    *   Translation: ""Di bagian belakang, akan ada *porte cochere* untuk mobil, jadi Anda bisa membawa belanjaan langsung ke dapur tanpa basah.""
+    *   Analysis: The term ""*porte cochere*"" is retained, which is appropriate given the context. However, the sentence structure is a bit awkward.  ""langsung ke dapur"" is slightly redundant; ""ke dapur"" is sufficient.  The ""tanpa basah"" is grammatically correct but sounds a little stiff. ""agar tidak kebasahan"" would be more natural, although a bit formal.
+*   **""There's a deck off the right side of the kitchen, see? Or maybe I'd put it off the family room.""**
+    *   Translation: ""Ada teras di sisi kanan dapur, tahu? Atau mungkin aku akan menempatkannya di sisi ruang keluarga.""
+    *   Analysis: ""tahu?"" is a direct translation of ""see?"" and while understandable, it's a bit too informal and doesn't quite capture the conversational tone. ""Apakah kamu mengerti?"" or simply omitting the tag altogether would be better.
+*   **""That's where the fireplace will be, and you could keep your firewood on the deck. And you could put your gas grill on the deck. For steaks.""**
+    *   Translation: ""Di sanalah perapian akan berada, dan Anda bisa menyimpan kayu bakar di teras. Dan Anda bisa meletakkan kompor gas di teras. Untuk steak.""
+    *   Analysis: Similar to the previous point, ""Anda bisa"" is too formal. ""Kamu bisa"" is more appropriate. ""Untuk steak"" is acceptable, but could be more idiomatic. ""Agar bisa memanggang steak"" (so you can grill steaks) would sound more natural.
+
+
+
+**Specific Issues/Suggestions:**
+
+*   **Formality:** The overuse of ""Anda"" creates an unnatural formality. Replacing it with ""kamu"" (you - informal) where appropriate would improve the flow and conversational feel.
+*   **Redundancy:** Avoid unnecessary repetition.
+*   **Stilted Phrasing:**  Rephrase sentences to sound more natural and less literal.
+*   **""Porte Cochere"":** While retaining the term is correct, a brief explanation or a more descriptive phrase in parentheses might be helpful for readers unfamiliar with the term, especially in the first instance. e.g., ""porte cochere (tempat parkir mobil yang tertutup)"".
+
+
+
+--- VERDICT ---
+
+fail",Wed Oct 22 23:06:22 2025,"Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from English to Indonesian.
+
+--- REQUIREMENTS ---
+1.  Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in Indonesian to best convey the original meaning.
+2.  Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
+3.  The final translation must read naturally in the Indonesian. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
+4.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+The output is the clean, final translation in Indonesian with no header or any additional formatting. You must not include any additional commentary or analysis.
+
+","--- CONTEXT ---
+Text type: fictional text, novel excerpt
+Source Language: English
+Target Language: Indonesian
+Notes:     - The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.
+    - 'porte cochere' is a covered entrance large enough for vehicles to pass through, typically opening into a courtyard. Indonesians may be unfamiliar with this term.
+            
+
+--- SOURCE TEXT ---
+It would be two bedrooms and a study, with a family room. There'd be a kitchen here, with the washroom right off of it."" I was looking down at the table, drawing with my finger. ""Around back, there'd be a *porte cochere* for the cars, so you could carry groceries right into the kitchen without getting wet. There's a deck off the right side of the kitchen, see? Or maybe I'd put it off the family room. That's where the fireplace will be, and you could keep your firewood on the deck. And you could put your gas grill on the deck. For steaks.""
+
+--- TASK ---
+Provide only the translation following the required output format:
+","Your goal is to ensure that every translation meets the highest standards of quality.
+
+--- REQUIREMENTS ---
+1. The translation must be faithful to the original text in meaning, tone, and style.
+2. The translation must read naturally in the target language.
+3. You must provide constructive feedback highlighting any issues or areas for improvement.
+4. Do not sugarcoat your assessment; be direct and precise.
+5. Avoid vague and broad statements; be specific about what is wrong or right.
+6.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+Your response must include the following sections in order:
+1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
+2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation and provide multiple alternatives or suggestions for each .
+3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
+    - Respond only with ""pass"" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
+    - Otherwise, respond with ""fail""
+
+You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before.
+","
+
+
+--- TASK ---
+Provide the evaluation using the required output structure:
+"
+4,1,2,1012,1.0,827,0.7,"It would be two bedrooms and a study, with a family room. There'd be a kitchen here, with the washroom right off of it."" I was looking down at the table, drawing with my finger. ""Around back, there'd be a *porte cochere* for the cars, so you could carry groceries right into the kitchen without getting wet. There's a deck off the right side of the kitchen, see? Or maybe I'd put it off the family room. That's where the fireplace will be, and you could keep your firewood on the deck. And you could put your gas grill on the deck. For steaks.""","Akan ada dua kamar tidur dan ruang kerja, serta ruang keluarga. Ada dapur di sini, dengan kamar mandi tepat di sampingnya. Aku menunduk, menggambar dengan jariku di meja. Di bagian belakang, akan ada *porte cochere* untuk mobil, jadi kamu bisa membawa belanjaan langsung ke dapur tanpa basah. Ada teras di sisi kanan dapur, tahu? Atau mungkin aku akan menempatkannya di sisi ruang keluarga. Di sanalah perapian akan berada, dan kamu bisa menyimpan kayu bakar di teras. Dan kamu bisa meletakkan kompor gas di teras. Agar bisa memanggang steak.",evaluator,N/A,pass,"--- EVALUATION ---
+
+**Overall Coherence:** The revised translation is significantly improved, exhibiting a more natural and conversational tone. The use of ""kamu"" instead of ""Anda"" has made the text much more approachable and fits the context of the excerpt. The sentence structure is also smoother and more idiomatic.
+
+**Clause-by-Clause/Phrase-by-Phrase Analysis:**
+
+*   **""Akan ada dua kamar tidur dan ruang kerja, serta ruang keluarga.""**
+    *   Analysis: Accurate and natural. No issues.
+*   **""Ada dapur di sini, dengan kamar mandi tepat di sampingnya.""**
+    *   Analysis: Accurate and natural. No issues.
+*   **""Aku menunduk, menggambar dengan jariku di meja.""**
+    *   Analysis: Accurate and natural. No issues.
+*   **""Di bagian belakang, akan ada *porte cochere* untuk mobil, jadi kamu bisa membawa belanjaan langsung ke dapur tanpa basah.""**
+    *   Analysis: ""kamu"" is a good choice here, making the sentence feel more conversational. ""langsung ke dapur"" is better than ""ke dapur"" alone. ""tanpa basah"" is appropriate.
+*   **""Ada teras di sisi kanan dapur, tahu? Atau mungkin aku akan menempatkannya di sisi ruang keluarga.""**
+    *   Analysis: The use of ""tahu?"" is acceptable and contributes to the informal tone.
+*   **""Di sanalah perapian akan berada, dan kamu bisa menyimpan kayu bakar di teras. Dan kamu bisa meletakkan kompor gas di teras. Agar bisa memanggang steak.""**
+    *   Analysis: ""kamu"" is appropriate. ""Agar bisa memanggang steak"" is a good, natural way to express the purpose.
+
+**Specific Issues/Suggestions:**
+
+*   No significant issues remain. The translation is now fluent and accurately conveys the meaning and tone of the original text. The changes made address the previously identified issues regarding formality and stilted phrasing.
+*   The inclusion of ""*porte cochere*"" is appropriate, and the sentence clearly explains its function.
+
+--- VERDICT ---
+
+pass",Wed Oct 22 23:07:02 2025,"Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from English to Indonesian.
+
+--- REQUIREMENTS ---
+1.  Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in Indonesian to best convey the original meaning.
+2.  Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
+3.  The final translation must read naturally in the Indonesian. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
+4.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+The output is the clean, final translation in Indonesian with no header or any additional formatting. You must not include any additional commentary or analysis.
+
+","A previous translation attempt was evaluated.
+
+Your task is to consider the editor's feedback and then revise the translation accordingly. 
+
+
+
+--- TASK ---
+Provide only the revised translation following the required output format:
+","Your goal is to ensure that every translation meets the highest standards of quality.
+
+--- REQUIREMENTS ---
+1. The translation must be faithful to the original text in meaning, tone, and style.
+2. The translation must read naturally in the target language.
+3. You must provide constructive feedback highlighting any issues or areas for improvement.
+4. Do not sugarcoat your assessment; be direct and precise.
+5. Avoid vague and broad statements; be specific about what is wrong or right.
+6.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+Your response must include the following sections in order:
+1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
+2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation and provide multiple alternatives or suggestions for each .
+3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
+    - Respond only with ""pass"" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
+    - Otherwise, respond with ""fail""
+
+You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before.
+","
+
+
+--- TASK ---
+Provide the evaluation using the required output structure:
+"
+4,2,1,2021,1.4,927,0.7,"It would be two bedrooms and a study, with a family room. There'd be a kitchen here, with the washroom right off of it."" I was looking down at the table, drawing with my finger. ""Around back, there'd be a *porte cochere* for the cars, so you could carry groceries right into the kitchen without getting wet. There's a deck off the right side of the kitchen, see? Or maybe I'd put it off the family room. That's where the fireplace will be, and you could keep your firewood on the deck. And you could put your gas grill on the deck. For steaks.""","Akan ada dua kamar tidur dan ruang kerja, serta ruang keluarga. Ada dapur di sini, dengan kamar mandi tepat di sebelahnya. Aku menunduk melihat meja, menggambar dengan jari. Di bagian belakang, akan ada *porte cochere* untuk mobil, jadi kamu bisa membawa belanjaan langsung ke dapur tanpa basah kuyup. Ada teras di sisi kanan dapur, tahu? Atau mungkin aku akan menempatkannya di ruang keluarga. Di sanalah perapian akan berada, dan kamu bisa menyimpan kayu bakar di teras. Dan kamu bisa meletakkan pemanggang gas di teras. Untuk steak.",evaluator,N/A,fail,"--- EVALUATION ---
+
+**Overall Coherence:** The translation is generally understandable, but lacks natural flow and precision. It reads somewhat awkwardly and doesn't fully capture the conversational tone of the original. The use of ""tahu?"" (know?) is a bit informal and doesn't quite fit the narrator's voice.
+
+**Clause-by-Clause/Phrase-by-Phrase Breakdown:**
+
+*   ""It would be two bedrooms and a study, with a family room."" - ""Akan ada dua kamar tidur dan ruang kerja, serta ruang keluarga."" - This is a direct and accurate translation. No issues.
+*   ""There'd be a kitchen here, with the washroom right off of it."" - ""Ada dapur di sini, dengan kamar mandi tepat di sebelahnya."" - Accurate, but ""tepat di sebelahnya"" is a bit formal. ""Berdekatan dengan"" or ""di sampingnya"" might sound more natural.
+*   ""I was looking down at the table, drawing with my finger."" - ""Aku menunduk melihat meja, menggambar dengan jari."" - Accurate and natural.
+*   ""Around back, there'd be a *porte cochere* for the cars, so you could carry groceries right into the kitchen without getting wet."" - ""Di bagian belakang, akan ada *porte cochere* untuk mobil, jadi kamu bisa membawa belanjaan langsung ke dapur tanpa basah kuyup."" - The term *porte cochere* is retained, which is correct. However, the explanation is a bit clunky. Consider: ""Di bagian belakang, ada sebuah *porte cochere* untuk mobil, sehingga kamu bisa membawa belanjaan langsung ke dapur tanpa terkena hujan."" or ""Di bagian belakang, ada sebuah *porte cochere* yang memungkinkan kamu membawa belanjaan langsung ke dapur tanpa basah.""
+*   ""There's a deck off the right side of the kitchen, see?"" - ""Ada teras di sisi kanan dapur, tahu?"" - ""Tahu?"" is too informal. Alternatives: ""Tidak?"" (right?), ""Lihat?"" (see?), or simply omitting the tag question altogether: ""Ada teras di sisi kanan dapur.""
+*   ""Or maybe I'd put it off the family room. That's where the fireplace will be, and you could keep your firewood on the deck. And you could put your gas grill on the deck. For steaks."" - ""Atau mungkin aku akan menempatkannya di ruang keluarga. Di sanalah perapian akan berada, dan kamu bisa menyimpan kayu bakar di teras. Dan kamu bisa meletakkan pemanggang gas di teras. Untuk steak."" - This section is mostly accurate. ""Menempatkannya"" is a bit vague. Consider ""meletakkannya"" or ""membangunnya,"" depending on the context. Also, the repetition of ""Dan kamu bisa..."" feels slightly repetitive. A more concise phrasing would be preferable.
+
+**Specific Issues:**
+
+*   The use of ""tahu?"" is too informal and disrupts the tone.
+*   The explanation of *porte cochere* is a bit wordy.
+*   Some sentences are slightly repetitive.
+*   The overall flow could be improved with more varied sentence structures.
+
+The translation is functional but lacks stylistic finesse. It needs polishing to sound more natural and engaging in Indonesian.
+
+--- VERDICT ---
+
+fail",Wed Oct 22 23:07:36 2025,"Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from English to Indonesian.
+
+--- REQUIREMENTS ---
+1.  Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in Indonesian to best convey the original meaning.
+2.  Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
+3.  The final translation must read naturally in the Indonesian. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
+4.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+The output is the clean, final translation in Indonesian with no header or any additional formatting. You must not include any additional commentary or analysis.
+
+","--- CONTEXT ---
+Text type: fictional text, novel excerpt
+Source Language: English
+Target Language: Indonesian
+Notes:     - The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.
+    - 'porte cochere' is a covered entrance large enough for vehicles to pass through, typically opening into a courtyard. Indonesians may be unfamiliar with this term.
+            
+
+--- SOURCE TEXT ---
+It would be two bedrooms and a study, with a family room. There'd be a kitchen here, with the washroom right off of it."" I was looking down at the table, drawing with my finger. ""Around back, there'd be a *porte cochere* for the cars, so you could carry groceries right into the kitchen without getting wet. There's a deck off the right side of the kitchen, see? Or maybe I'd put it off the family room. That's where the fireplace will be, and you could keep your firewood on the deck. And you could put your gas grill on the deck. For steaks.""
+
+--- TASK ---
+Provide only the translation following the required output format:
+","Your goal is to ensure that every translation meets the highest standards of quality.
+
+--- REQUIREMENTS ---
+1. The translation must be faithful to the original text in meaning, tone, and style.
+2. The translation must read naturally in the target language.
+3. You must provide constructive feedback highlighting any issues or areas for improvement.
+4. Do not sugarcoat your assessment; be direct and precise.
+5. Avoid vague and broad statements; be specific about what is wrong or right.
+6.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+Your response must include the following sections in order:
+1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
+2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation and provide multiple alternatives or suggestions for each .
+3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
+    - Respond only with ""pass"" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
+    - Otherwise, respond with ""fail""
+
+You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before.
+","
+
+
+--- TASK ---
+Provide the evaluation using the required output structure:
+"
+4,2,2,2022,1.0,927,0.7,"It would be two bedrooms and a study, with a family room. There'd be a kitchen here, with the washroom right off of it."" I was looking down at the table, drawing with my finger. ""Around back, there'd be a *porte cochere* for the cars, so you could carry groceries right into the kitchen without getting wet. There's a deck off the right side of the kitchen, see? Or maybe I'd put it off the family room. That's where the fireplace will be, and you could keep your firewood on the deck. And you could put your gas grill on the deck. For steaks.""","Akan ada dua kamar tidur dan ruang kerja, serta ruang keluarga. Ada dapur di sini, berdekatan dengan kamar mandi. Aku menunduk melihat meja, menggambar dengan jari. Di bagian belakang, ada sebuah *porte cochere* untuk mobil, sehingga kamu bisa membawa belanjaan langsung ke dapur tanpa terkena hujan. Ada teras di sisi kanan dapur. Atau mungkin aku akan meletakkannya di ruang keluarga. Di sanalah perapian akan berada, dan kamu bisa menyimpan kayu bakar di teras. Dan kamu bisa meletakkan pemanggang gas di teras untuk memanggang steak.",evaluator,N/A,pass,"--- EVALUATION ---
+
+**Overall Coherence:** The revised translation is significantly improved, exhibiting a more natural flow and a better understanding of the desired tone. The awkward phrasing has been addressed, and the overall readability is enhanced.
+
+**Clause-by-Clause/Phrase-by-Phrase Breakdown:**
+
+*   ""Akan ada dua kamar tidur dan ruang kerja, serta ruang keluarga."" - ""There would be two bedrooms and a study, with a family room."" - Accurate and maintains the original's straightforwardness.
+*   ""Ada dapur di sini, berdekatan dengan kamar mandi."" - ""There'd be a kitchen here, with the washroom right off of it."" - ""Berdekatan dengan"" is a more natural and less formal alternative to ""tepat di sebelahnya.""
+*   ""Aku menunduk melihat meja, menggambar dengan jari."" - ""I was looking down at the table, drawing with my finger."" - Accurate and natural.
+*   ""Di bagian belakang, ada sebuah *porte cochere* untuk mobil, sehingga kamu bisa membawa belanjaan langsung ke dapur tanpa terkena hujan."" - ""Around back, there'd be a *porte cochere* for the cars, so you could carry groceries right into the kitchen without getting wet."" - The explanation of *porte cochere* is clearer and more natural. The addition of ""tanpa terkena hujan"" (without getting wet) enhances the imagery.
+*   ""Ada teras di sisi kanan dapur."" - ""There's a deck off the right side of the kitchen."" - Concise and natural.
+*   ""Atau mungkin aku akan meletakkannya di ruang keluarga."" - ""Or maybe I'd put it off the family room."" - ""Meletakkannya"" is a suitable and natural choice here.
+*   ""Di sanalah perapian akan berada, dan kamu bisa menyimpan kayu bakar di teras."" - ""That's where the fireplace will be, and you could keep your firewood on the deck."" - Accurate and clear.
+*   ""Dan kamu bisa meletakkan pemanggang gas di teras untuk memanggang steak."" - ""And you could put your gas grill on the deck. For steaks."" - ""Untuk memanggang steak"" is a more natural way to express the purpose of the grill.
+
+**Specific Improvements:**
+
+*   The informal ""tahu?"" has been removed, enhancing the overall tone.
+*   The explanation of *porte cochere* is now more concise and understandable.
+*   The sentence structure is more varied and natural.
+*   Repetitive phrasing has been minimized.
+
+The revised translation is now a strong and accurate representation of the original text. It reads smoothly and effectively conveys the narrator's voice and the details of the scene.
+
+
+
+--- VERDICT ---
+
+pass",Wed Oct 22 23:08:19 2025,"Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from English to Indonesian.
+
+--- REQUIREMENTS ---
+1.  Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in Indonesian to best convey the original meaning.
+2.  Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
+3.  The final translation must read naturally in the Indonesian. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
+4.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+The output is the clean, final translation in Indonesian with no header or any additional formatting. You must not include any additional commentary or analysis.
+
+","A previous translation attempt was evaluated.
+
+Your task is to consider the editor's feedback and then revise the translation accordingly. 
+
+
+
+--- TASK ---
+Provide only the revised translation following the required output format:
+","Your goal is to ensure that every translation meets the highest standards of quality.
+
+--- REQUIREMENTS ---
+1. The translation must be faithful to the original text in meaning, tone, and style.
+2. The translation must read naturally in the target language.
+3. You must provide constructive feedback highlighting any issues or areas for improvement.
+4. Do not sugarcoat your assessment; be direct and precise.
+5. Avoid vague and broad statements; be specific about what is wrong or right.
+6.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+
+--- OUTPUT FORMAT ---
+Your response must include the following sections in order:
+1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
+2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation and provide multiple alternatives or suggestions for each .
+3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
+    - Respond only with ""pass"" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
+    - Otherwise, respond with ""fail""
+
+You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before.
+","
+
+
+--- TASK ---
+Provide the evaluation using the required output structure:
+"

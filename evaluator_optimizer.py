@@ -35,9 +35,9 @@ from lib import (
     wait,
 )
 
-EVALUATOR_TEMP = 0.5
-OPTIMIZER_TEMP = 1.0
-OPTIMIZER_ALT_TEMP = 0.8
+EVALUATOR_TEMP = 0.7
+OPTIMIZER_TEMP = 1.4
+OPTIMIZER_ALT_TEMP = 1.0
 EVALUATOR_SEED = 727
 SEEDS = [101, 202, 303, 404, 505, 606, 707, 808, 909, 1010]
 ARGS = get_parsed_args()
@@ -49,6 +49,7 @@ OPTIMIZER_SYSTEM_PROMPT = f"""{
 1.  Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in {{TARGET_LANG}} to best convey the original meaning.
 2.  Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
 3.  The final translation must read naturally in the {{TARGET_LANG}}. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
+4.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
 
 --- OUTPUT FORMAT ---
 {
@@ -58,14 +59,11 @@ The output is divided under two headers with the following structure:
 2.  --- FINAL TRANSLATION ---: Implement your analysis, providing the clean, final translation in {TARGET_LANG}. Your output must be only the clean, final text.
     '''
     if ARGS.simulate_thinking
-    else "The output is the clean, final translation in {TARGET_LANG}. You must not include any additional commentary or analysis."
+    else "The output is the clean, final translation in {TARGET_LANG} with no header or any additional formatting. You must not include any additional commentary or analysis."
 }
 
 """
-OPTIMIZER_INIT_USER_PROMPT = """--- CONTEXT ---
-Text type: {TEXT_TYPE}
-Source Language: {SOURCE_LANG}
-Target Language: {TARGET_LANG}
+OPTIMIZER_INIT_USER_PROMPT = """{CONTEXT}
 
 --- SOURCE TEXT ---
 {SOURCE_TEXT}
@@ -101,11 +99,12 @@ EVALUATOR_SIMPLE_SYSTEM_PROMPT = f"""{"You are a meticulous and highly critical 
 3. You must provide constructive feedback highlighting any issues or areas for improvement.
 4. Do not sugarcoat your assessment; be direct and precise.
 5. Avoid vague and broad statements; be specific about what is wrong or right.
+6.  Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
 
 --- OUTPUT FORMAT ---
 Your response must include the following sections in order:
 1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
-2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation. Be thorough and precise in your critique.
+2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation and provide multiple alternatives or suggestions for each .
 3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
     - Respond only with "pass" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
     - Otherwise, respond with "fail"
@@ -114,10 +113,7 @@ Your response must include the following sections in order:
 """
 EVALUATOR_USER_PROMPT = f"""
 {
-    '''--- CONTEXT ---
-Text type: {TEXT_TYPE}
-Source Language: {SOURCE_LANG}
-Target Language: {TARGET_LANG}
+    '''{CONTEXT}
 
 --- SOURCE TEXT ---
 {SOURCE_TEXT}
@@ -164,11 +160,7 @@ OPTIMIZER_RETRY_PROMPT = f"""A previous translation attempt was evaluated.
 }
 
 {
-    '''
---- CONTEXT ---
-Text type: {TEXT_TYPE}
-Source Language: {SOURCE_LANG}
-Target Language: {TARGET_LANG}
+    '''{CONTEXT}
 
 --- SOURCE TEXT ---
 {SOURCE_TEXT}
@@ -245,6 +237,7 @@ class SourceTextEntry(TypedDict):
     text: str
     type: str
     id: int
+    notes: list[str]
 
 
 class State(TypedDict):
@@ -283,6 +276,16 @@ def fill_in_messages(state: State, messages: list[tuple[str, str, str]]) -> None
             messages.append(("assistant", entry["result"], "evaluator"))
 
 
+def format_context(state: State) -> str:
+    nl = "\n"
+    return f"""--- CONTEXT ---
+Text type: {state["source_text"]["type"]}
+Source Language: {state["source_text"]["source_lang"]}
+Target Language: {state["source_text"]["target_lang"]}
+Notes: {nl.join([f"    - {i}" for i in state["source_text"].get("notes", [])])}
+            """
+
+
 async def handle_optimization_state(state: State) -> None:
     state["attempt"] += 1
 
@@ -298,16 +301,16 @@ async def handle_optimization_state(state: State) -> None:
         state["max_attempt"],
     )
 
+    context = format_context(state)
+    system_prompt = OPTIMIZER_SYSTEM_PROMPT.format(
+        SOURCE_LANG=state["source_text"]["source_lang"],
+        TARGET_LANG=state["source_text"]["target_lang"],
+    )
+
     if is_draft:
         prompt = OPTIMIZER_INIT_USER_PROMPT.format(
             SOURCE_TEXT=state["source_text"]["text"],
-            SOURCE_LANG=state["source_text"]["source_lang"],
-            TARGET_LANG=state["source_text"]["target_lang"],
-            TEXT_TYPE=state["source_text"]["type"],
-        )
-        system_prompt = OPTIMIZER_SYSTEM_PROMPT.format(
-            SOURCE_LANG=state["source_text"]["source_lang"],
-            TARGET_LANG=state["source_text"]["target_lang"],
+            CONTEXT=context,
         )
         state["next_state"] = "evaluation"
     else:
@@ -330,13 +333,7 @@ async def handle_optimization_state(state: State) -> None:
         prompt = OPTIMIZER_RETRY_PROMPT.format(
             SOURCE_TEXT=state["source_text"]["text"],
             FEEDBACK=last_feedback["feedback"],
-            TEXT_TYPE=state["source_text"]["type"],
-            SOURCE_LANG=state["source_text"]["source_lang"],
-            TARGET_LANG=state["source_text"]["target_lang"],
-        )
-        system_prompt = OPTIMIZER_SYSTEM_PROMPT.format(
-            SOURCE_LANG=state["source_text"]["source_lang"],
-            TARGET_LANG=state["source_text"]["target_lang"],
+            CONTEXT=context,
         )
         state["next_state"] = "verification" if ARGS.evaluate_once else "evaluation"
 
@@ -398,10 +395,8 @@ async def handle_evaluation_state(state: State) -> None:
     )
     prompt = EVALUATOR_USER_PROMPT.format(
         SOURCE_TEXT=state["source_text"]["text"],
-        SOURCE_LANG=state["source_text"]["source_lang"],
-        TARGET_LANG=state["source_text"]["target_lang"],
         TRANSLATION_ATTEMPT=last_attempt["translation"],
-        TEXT_TYPE=state["source_text"]["type"],
+        CONTEXT=format_context(state),
     )
     messages = [("system", system_prompt, "system")]
     fill_in_messages(state, messages)
@@ -674,9 +669,11 @@ async def main():
                         source_text: SourceTextEntry = {
                             "source_lang": input_json["source_lang"],
                             "target_lang": input_json["target_lang"],
-                            "text": text,
+                            "text": text["content"],
                             "type": input_json.get("type", "general"),
                             "id": text_idx + 1,
+                            "notes": input_json.get("notes", [])
+                            + text.get("notes", []),
                         }
 
                         for i in range(ARGS.iterations):
