@@ -35,9 +35,9 @@ from lib import (
     wait,
 )
 
-EVALUATOR_TEMP = 0.05
+EVALUATOR_TEMP = 0.5
 OPTIMIZER_TEMP = 1.0
-OPTIMIZER_ALT_TEMP = 0.5
+OPTIMIZER_ALT_TEMP = 0.8
 EVALUATOR_SEED = 727
 SEEDS = [101, 202, 303, 404, 505, 606, 707, 808, 909, 1010]
 ARGS = get_parsed_args()
@@ -55,10 +55,10 @@ OPTIMIZER_SYSTEM_PROMPT = f"""{
     '''
 The output is divided under two headers with the following structure:
 1.  --- ANALYSIS ---: You must first provide a detailed analysis of each sentence/phrase in the source text, highlighting potential challenges and methods you will use to address them in your translation.
-2.  --- FINAL TRANSLATION ---: Implement your analysis, providing the clean, final translation in {{TARGET_LANG}}. Your output must be only the clean, final text.
+2.  --- FINAL TRANSLATION ---: Implement your analysis, providing the clean, final translation in {TARGET_LANG}. Your output must be only the clean, final text.
     '''
     if ARGS.simulate_thinking
-    else "The output is the clean, final translation in {{TARGET_LANG}}. You must not include any additional commentary or analysis."
+    else "The output is the clean, final translation in {TARGET_LANG}. You must not include any additional commentary or analysis."
 }
 
 """
@@ -71,7 +71,7 @@ Target Language: {TARGET_LANG}
 {SOURCE_TEXT}
 
 --- TASK ---
-Provide the translation in {TARGET_LANG}:
+Provide the translation:
 """
 EVALUATOR_COMPLEX_SYSTEM_PROMPT = f"""{"You are a Quality Assurance Gatekeeper for a prestigious publishing house. Your sole purpose is to protect the company's reputation by rejecting any translation that is not of the absolute highest quality. " * (not ARGS.omit_roles)}You are known for being extremely strict, fair, and having an eye for detail.
 
@@ -103,15 +103,17 @@ EVALUATOR_SIMPLE_SYSTEM_PROMPT = f"""{"You are a meticulous and highly critical 
 
 --- OUTPUT FORMAT ---
 Your response must include the following sections in order:
-1. Analyse the tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
+1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
 2. Evaluate the translation attempt against the source text under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation. Be thorough and precise in your critique.
-3. Provide your final assessment under the `--- VERDICT ---` header, without the subticks:
-    - Respond only with "pass" if you find the translation meets all quality standards, free of ANY issues.
-    - Otherwise, respond with "fail", followed by a comprehensive feedback on how to improve the translation and maintain the meaning, tone, and style of its original source text. Give specific examples for each problematic phrase. If you find a phrase with multiple meanings depending on the context, explore all the possible meanings in differing contexts for the translator to decide. Do not emphasize your changes with formatting.
+3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
+    - Respond only with "pass" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
+    - Otherwise, respond with "fail"
 
-You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before.
+{"You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before." * (ARGS.preserve_history)}
 """
-EVALUATOR_USER_PROMPT = """--- CONTEXT ---
+EVALUATOR_USER_PROMPT = f"""
+{
+    '''--- CONTEXT ---
 Text type: {TEXT_TYPE}
 Source Language: {SOURCE_LANG}
 Target Language: {TARGET_LANG}
@@ -121,8 +123,12 @@ Target Language: {TARGET_LANG}
 
 --- TRANSLATION TO EVALUATE ---
 {TRANSLATION_ATTEMPT}
+    '''
+    * (not ARGS.preserve_history)
+}
 
---- OUTPUT ---
+--- TASK ---
+Provide the evaluation using the required output structure:
 """
 # https://github.com/ggml-org/llama.cpp/tree/master/grammars
 EVALUATOR_JSON_GRAMMAR = r"""boolean ::= ("true" | "false") space
@@ -156,18 +162,24 @@ OPTIMIZER_RETRY_PROMPT = f"""A previous translation attempt was evaluated.
     else "Your task is to deeply consider the editor's feedback and generate a completely new version of the translation that addresses the identified problems. Start again from scratch, keeping the feedback in mind."
 }
 
+{
+    '''
 --- CONTEXT ---
-Text type: {{TEXT_TYPE}}
-Source Language: {{SOURCE_LANG}}
-Target Language: {{TARGET_LANG}}
+Text type: {TEXT_TYPE}
+Source Language: {SOURCE_LANG}
+Target Language: {TARGET_LANG}
 
 --- SOURCE TEXT ---
-{{SOURCE_TEXT}}
+{SOURCE_TEXT}
 
 --- EDITOR'S FEEDBACK ---
-{{FEEDBACK}}
+{FEEDBACK}
+    '''
+    * (not ARGS.preserve_history)
+}
 
---- OUTPUT ---
+--- TASK ---
+Provide the revised translation:
 """
 VERIFIER_SYSTEM_PROMPT = """You are a robotic and literal Quality Assurance Verifier. Your only function is to check if a revised text has correctly implemented a set of required changes. You do not have opinions or creative ideas.
 
