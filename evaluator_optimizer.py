@@ -71,7 +71,7 @@ Target Language: {TARGET_LANG}
 {SOURCE_TEXT}
 
 --- TASK ---
-Provide the translation:
+Provide only the translation following the required output format:
 """
 EVALUATOR_COMPLEX_SYSTEM_PROMPT = f"""{"You are a Quality Assurance Gatekeeper for a prestigious publishing house. Your sole purpose is to protect the company's reputation by rejecting any translation that is not of the absolute highest quality. " * (not ARGS.omit_roles)}You are known for being extremely strict, fair, and having an eye for detail.
 
@@ -100,11 +100,12 @@ EVALUATOR_SIMPLE_SYSTEM_PROMPT = f"""{"You are a meticulous and highly critical 
 2. The translation must read naturally in the target language.
 3. You must provide constructive feedback highlighting any issues or areas for improvement.
 4. Do not sugarcoat your assessment; be direct and precise.
+5. Avoid vague and broad statements; be specific about what is wrong or right.
 
 --- OUTPUT FORMAT ---
 Your response must include the following sections in order:
 1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
-2. Evaluate the translation attempt against the source text under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation. Be thorough and precise in your critique.
+2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation. Be thorough and precise in your critique.
 3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
     - Respond only with "pass" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
     - Otherwise, respond with "fail"
@@ -179,7 +180,7 @@ Target Language: {TARGET_LANG}
 }
 
 --- TASK ---
-Provide the revised translation:
+Provide only the revised translation following the required output format:
 """
 VERIFIER_SYSTEM_PROMPT = """You are a robotic and literal Quality Assurance Verifier. Your only function is to check if a revised text has correctly implemented a set of required changes. You do not have opinions or creative ideas.
 
