@@ -50,7 +50,7 @@ Open a terminal in the project's root directory and run the `llama-server`. This
 
 ```sh
 # Example command to run llama-server
-llama-server -m .\gemma-3n-E4B-it.gguf --port 8000 -c 32768 -fa on --cache-ram 4096 --repeat-penalty 1.0 --min-p 0.01 --top-k 64 --top-p 0.95 --no-webui
+llama-server -m .\gemma-3n-E4B-it.gguf --port 8000 -c 32768 -fa on --cache-ram 0 --repeat-penalty 1.0 --min-p 0.01 --top-k 64 --top-p 0.95 --no-webui
 ```
 
 ##### Step 3: Run the Experiment Script
@@ -58,7 +58,7 @@ llama-server -m .\gemma-3n-E4B-it.gguf --port 8000 -c 32768 -fa on --cache-ram 4
 Open a second terminal in the project's root directory. Run the `evaluator_optimizer.py` script, pointing it to your input corpus.
 
 ```sh
-python evaluator_optimizer.py --input "corpus/literature.json" --timeout 0 --simple-evaluator --iterations 5 --refinement-iterations 5 --cache-prompt --omit-roles --preserve-history
+python evaluator_optimizer.py --input "corpus/literature.json" --timeout 0 --simple-evaluator --iterations 5 --refinement-iterations 5 --omit-roles --preserve-history
 ```
 
 ## Output
