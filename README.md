@@ -34,7 +34,8 @@ python311 -m pip install aiohttp
 
 5. Download the Model: Download the [unsloth/gemma-3n-E4B-it-GGUF](https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF) model from Hugging Face and place it in the root directory of this project (we use specifically Q4_K_M, though other variants should work fine too).
 
-> [!NOTE] For other platforms (Linux/macOS): You will need to install Python 3.11 and compile llama.cpp from source according to their official documentation.
+> [!NOTE]
+> For other platforms (Linux/macOS): You will need to install Python 3.11 and compile llama.cpp from source according to their official documentation.
 
 ## Usage
 
