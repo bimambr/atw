@@ -7,7 +7,7 @@ This repository contains the scripts and methodology for a thesis project analyz
 - Python 3.11 or higher (Python 3.14 is untested as of writing).
 - Python package: `aiohttp`
 - llama.cpp (llama-server)
-- LLM Model: A GGUF-compatible model. The experiments for the thesis were conducted using `unsloth/gemma-3n-E4B-it-GGUF`.
+- LLM Model: A GGUF-compatible model. The experiments for the thesis were conducted using `unsloth/gemma-3n-E4B-it-GGUF` (Q4_K_M quant).
 
 ## Quick Setup (Windows)
 
@@ -32,7 +32,7 @@ scoop install python311 llama.cpp-vulkan
 python311 -m pip install aiohttp
 ```
 
-5. Download the Model: Download the [unsloth/gemma-3n-E4B-it-GGUF](https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF) model from Hugging Face and place it in the root directory of this project (we use specifically Q4_K_M, though other variants should work fine too).
+5. Download the Model: Download the [unsloth/gemma-3n-E4B-it-GGUF](https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF) model from Hugging Face and place it in the root directory of this project (we use specifically the Q4_K_M quant).
 
 > [!NOTE]
 > For other platforms (Linux/macOS): You will need to install Python 3.11 and compile llama.cpp from source according to their official documentation.
@@ -43,7 +43,23 @@ The experiment is run in three stages: preparing the data, running the LLM serve
 
 ##### Step 1: Prepare the corpus
 
-Create a JSON file in the corpus directory (e.g., [corpus/literature.json](corpus/literature.json)). It must have `source_lang`, `target_lang`, `type`, and lastly `texts` containing an array of texts.
+Create a JSON file in the corpus directory (e.g., [corpus/literature.json](corpus/literature.json)). It must have `source_lang`, `target_lang`, `type`, `external_knowledge`, and lastly `texts` containing an array of text objects (`content` and `external_knowledge`).
+
+```json
+{
+    "source_lang": ...,
+    "target_lang": ...,
+    "type": ...,
+    "external_knowledge": [..., ..., ...],
+    "texts": [
+        {
+            "content": ...,
+            "external_knowledge": [..., ..., ...]
+        },
+        ...
+    ]
+}
+```
 
 ##### Step 2: Run the LLM Server
 
@@ -64,4 +80,4 @@ python evaluator_optimizer.py --input "corpus/literature.json" --timeout 0 --sim
 
 ## Output
 
-The script will generate a .csv file in a newly created `evaluator_optimizer_attempts` directory. This CSV file contains a detailed log of every attempt in the refinement loop, allowing for a thorough analysis of the AI's behavior.
+The script will generate a .csv file in a newly created `evaluator_optimizer_attempts` directory. This CSV file contains a detailed log of every attempt in the refinement loop, allowing for a thorough analysis of the AI's translation products.
