@@ -35,9 +35,9 @@ from lib import (
     wait,
 )
 
-EVALUATOR_TEMP = 0.01
+EVALUATOR_TEMP = 0.7
 OPTIMIZER_TEMP = 1.4
-OPTIMIZER_ALT_TEMP = 0.3
+OPTIMIZER_ALT_TEMP = 0.01
 EVALUATOR_SEED = 727
 SEEDS = [101, 202, 303, 404, 505, 606, 707, 808, 909, 1010]
 ARGS = get_parsed_args()
@@ -65,7 +65,7 @@ The output is divided under two headers with the following structure:
 """
 OPTIMIZER_INIT_USER_PROMPT = """{CONTEXT}
 
---- SOURCE TEXT ---
+--- SOURCE TEXT (GROUND TRUTH) ---
 {SOURCE_TEXT}
 
 --- TASK ---
@@ -115,7 +115,7 @@ EVALUATOR_USER_PROMPT = f"""
 {
     '''{CONTEXT}
 
---- SOURCE TEXT ---
+--- SOURCE TEXT (GROUND TRUTH) ---
 {SOURCE_TEXT}
 
 --- TRANSLATION TO EVALUATE ---
@@ -162,7 +162,7 @@ OPTIMIZER_RETRY_PROMPT = f"""A previous translation attempt was evaluated.
 {
     '''{CONTEXT}
 
---- SOURCE TEXT ---
+--- SOURCE TEXT (GROUND TRUTH) ---
 {SOURCE_TEXT}
 
 --- EDITOR'S FEEDBACK ---
