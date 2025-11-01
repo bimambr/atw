@@ -61,6 +61,9 @@ The experiment is run in three stages: preparing the data, running the LLM serve
 
 Create a JSON file in the corpus directory (e.g., [corpus/literature.json](corpus/literature.json)). It must have `source_lang`, `target_lang`, `type`, `external_knowledge`, and lastly `texts` containing an array of text objects (`content` and `external_knowledge`).
 
+> [!NOTE]
+> Additional keys will be ignored. For example, the `page_on_translated_book` tracks where the passage appears in the translated book. You could embed the translated text directly instead, but doing so might imply that the model needs to see the reference, which it does not.
+
 ```json
 {
     "source_lang": ...,
