@@ -5,10 +5,12 @@ This repository contains the scripts and methodology for a thesis project analys
 ## Requirements
 
 - Python 3.11 or higher (Python 3.14 is untested as of writing).
-- Python package: `aiohttp`
-- llama.cpp (llama-server)
+- Python package: `aiohttp`.
+- llama.cpp (llama-server).
 - LLM Model: A GGUF-compatible model. The experiments for the thesis were conducted using `unsloth/gemma-3n-E4B-it-GGUF` (Q4_K_M quant).
-- 16GB of RAM (or yet better 6GB of VRAM)
+- Memory:
+  - At least 16GB RAM if running on CPU, or
+  - 6GB VRAM (NVIDIA GPU recommended).
 
 ## Quick Setup (Windows)
 
