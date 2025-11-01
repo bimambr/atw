@@ -2,6 +2,19 @@
 
 This repository contains the scripts and methodology for a thesis project analysing the quality of translations produced by a local Large Language Model (default: gemma-3n). The framework uses a multi-agent, iterative workflow to generate, evaluate, and refine translations, providing a rich dataset for qualitative analysis.
 
+## Workflow Graph
+
+<p align="center">
+  <img alt="workflow graph" src="docs/graph.png" />
+</p>
+
+The workflow was inspired by LangChain's [evaluator-optimizer](https://docs.langchain.com/oss/python/langgraph/workflows-agents#evaluator-optimizer), with some twists being:
+
+1. Draft generation and refinement here are treated as separate nodes for a better visualisation, as they use different parameters.[^1] The former uses a higher temperature than the latter.
+2. The interaction history may or may not be included via the `--preserve_history` flag. Doing so will generally help making the evaluator more consistent in each iteration.
+
+[^1]: Practically, the two nodes are handled by the same function in the code.
+
 ## Requirements
 
 - Python 3.11 or higher (Python 3.14 is untested as of writing).
