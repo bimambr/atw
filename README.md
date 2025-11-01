@@ -1,6 +1,6 @@
-# AI Translation Quality Analysis Framework
+# Agentic Translation Workflow
 
-This repository contains the scripts and methodology for a thesis project analyzing the quality of translations produced by a local Large Language Model (LLM). The framework uses a multi-agent, iterative workflow to generate, evaluate, and refine translations, providing a rich dataset for qualitative analysis.
+This repository contains the scripts and methodology for a thesis project analysing the quality of translations produced by a local Large Language Model (default: gemma-3n). The framework uses a multi-agent, iterative workflow to generate, evaluate, and refine translations, providing a rich dataset for qualitative analysis.
 
 ## Requirements
 
