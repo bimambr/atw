@@ -247,4 +247,18 @@ def get_parsed_args() -> CLIArgs:
         default=False,
         help="Preserve the full interaction history when optimizing translations.",
     )
-    return parser.parse_args(namespace=CLIArgs)
+    parsed = parser.parse_args(namespace=CLIArgs)
+
+    LOGGER.info("Using endpoint: %s", parsed.endpoint)
+    LOGGER.info("Model: %s", parsed.model)
+    LOGGER.info("Iterations per seed: %d", parsed.iterations)
+    LOGGER.info("Refinement iterations: %d", parsed.refinement_iterations)
+    LOGGER.info("Input files: %s", parsed.input)
+    LOGGER.info("Timeout: %d seconds", parsed.timeout)
+    LOGGER.info("Simulate thinking: %s", parsed.simulate_thinking)
+    LOGGER.info("Simple evaluator: %s", parsed.simple_evaluator)
+    LOGGER.info("Cache prompt: %s", parsed.cache_prompt)
+    LOGGER.info("Omit roles: %s", parsed.omit_roles)
+    LOGGER.info("Preserve history: %s", parsed.preserve_history)
+
+    return parsed

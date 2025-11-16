@@ -677,15 +677,6 @@ async def main():
         for p in input_files
     ]
 
-    LOGGER.info("Model: %s", ARGS.model)
-    LOGGER.info("Iterations per seed: %d", ARGS.iterations)
-    LOGGER.info("Refinement iterations: %d", ARGS.refinement_iterations)
-    LOGGER.info("Optimizer temperature: %f", OPTIMIZER_TEMP)
-    LOGGER.info("Evaluator temperature: %f", EVALUATOR_TEMP)
-    LOGGER.info("Input files: %s", ARGS.input)
-    LOGGER.info("Simulate thinking: %s", ARGS.simulate_thinking)
-    LOGGER.info("Simple evaluator: %s", ARGS.simple_evaluator)
-
     event = asyncio.Event()
     signal.signal(signal.SIGINT, lambda *_args: signal_handler(event))
 
