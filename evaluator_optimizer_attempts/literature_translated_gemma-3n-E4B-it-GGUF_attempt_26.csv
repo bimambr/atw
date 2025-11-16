@@ -1,0 +1,434 @@
+text_id,iteration_id,attempt,optimizer_seed,optimizer_temp,evaluator_seed,evaluator_temp,source_text,translation_attempt,grade,raw_translation,raw_evaluation,timestamp,optimizer_system_prompt,optimizer_user_prompt,evaluator_system_prompt,evaluator_user_prompt
+1,1,1,1011,0.01,827,0.01,"*Suicide, my ass*, was my instant, and silent, reaction. Why hadn't Sybil hired me to come out here to read his grave first, instead of sending me to the woods to find Teenie? Of course this boy hadn't shot himself. Dell Teague had been murdered, just like his wild girlfriend. I opened my eyes. Hollis Boxleitner had swung around to check on what I was doing. I looked into the intent face of the deputy. ""No suicide here,"" I said.","Reaksi instan, dalam hati saya, adalah *bunuh diri, omong kosong*. Mengapa Sybil tidak mempekerjakan saya untuk membaca makamnya terlebih dahulu, alih-alih mengirim saya ke hutan untuk mencari Teenie? Tentu saja anak ini tidak bunuh diri. Dell Teague dibunuh, sama seperti pacar liarnya. Saya membuka mata. Hollis Boxleitner berputar untuk melihat apa yang sedang saya lakukan. Saya menatap wajah serius petugas polisi itu. ""Tidak ada bunuh diri di sini,"" kataku.",pass,"<retelling>
+Harper is a unique professional who helps people find the last moments of the deceased, offering closure to the living. She's traveling with her step-brother, Tolliver, who acts as her manager and protector. Upon arriving at the scene, Harper immediately dismisses the initial assumption of suicide, realizing that Dell Teague, the boyfriend of Sybil Teague's son (Teenie), was murdered, just like Teenie himself. She confirms this to Deputy Hollis Boxleitner.
+</retelling>
+<translation>
+Reaksi instan, dalam hati saya, adalah *bunuh diri, omong kosong*. Mengapa Sybil tidak mempekerjakan saya untuk membaca makamnya terlebih dahulu, alih-alih mengirim saya ke hutan untuk mencari Teenie? Tentu saja anak ini tidak bunuh diri. Dell Teague dibunuh, sama seperti pacar liarnya. Saya membuka mata. Hollis Boxleitner berputar untuk melihat apa yang sedang saya lakukan. Saya menatap wajah serius petugas polisi itu. ""Tidak ada bunuh diri di sini,"" kataku.
+</translation>","<analysis>
+The translation is generally accurate and conveys the meaning of the source text. The tone of the original text, which is cynical and slightly sarcastic, is maintained in the Indonesian translation. The use of ""omong kosong"" for ""my ass"" is a fairly direct and acceptable equivalent, capturing the informal and dismissive tone. The sentence structure is mostly natural in Indonesian, although there are a few minor awkward phrasings. The word ""serius"" (serious) is used to describe the deputy's face, which is a reasonable interpretation of ""intent.""
+</analysis>
+<evaluation>
+The translation is quite good and largely successful. However, there are a few areas for improvement.
+
+1.  **""dalam hati saya""**: While grammatically correct, it's a bit redundant. ""Dalam hati"" (in my heart) is implied. Consider removing it for a more natural flow.
+2.  **""membaca makamnya terlebih dahulu""**: This is a bit formal. A more natural phrasing might be ""membaca naskah kematiannya terlebih dahulu"" (reading his death record first) or ""memeriksa makamnya terlebih dahulu"" (checking his grave first).
+3.  **""petugas polisi itu""**: This is a bit clunky. ""Petugas itu"" (that officer) would be more natural.
+
+Here are some alternative suggestions:
+
+*   ""Reaksi instan saya adalah *bunuh diri, omong kosong*."" (Removing ""dalam hati saya"")
+*   ""Mengapa Sybil tidak mempekerjakan saya untuk membaca naskah kematiannya terlebih dahulu, alih-alih mengirim saya ke hutan untuk mencari Teenie?"" (Replacing ""makamnya"" with ""naskah kematiannya"")
+*   ""Saya menatap wajah petugas itu."" (Replacing ""petugas polisi itu"" with ""petugas itu"")
+
+</evaluation>
+<grade>pass</grade>",Mon Nov 17 05:06:07 2025,"<role>You are a professional linguistic translator.</role>
+<goal>Your primary directive is to provide a fluent, accurate, and contextually appropriate translation.</goal>.
+<requirements>
+  <item>Pay attention to any markedness, whether syntactical or lexical, that should be considered in the translation.</item>
+  <item>Preserve the tone, style, and intent of the source text.</item>
+  <item>Ensure the translation reads naturally in the target language.</item>
+  <item>Adhere to the context provided, as it may contain important information that affects your translation choices.</item>
+</requirements>
+<output_format>
+  <item>First, paraphrase and retell the source text in your own words to demonstrate your understanding in the retelling tag.</item>
+  <item>Then, provide your translation of the source text.</item>
+</output_format>","<context>
+  <text_type>fictional text, novel excerpt</text_type>
+  <source_lang>English</source_lang>
+  <target_lang>Indonesian</target_lang>
+  <external_knowledge>
+    <item>Novel synopsis: The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.</item>
+    <item>Dell Teague, Sybil Teague's son, was Teenie's boyfriend</item>
+  </external_knowledge>
+</context>
+<source_text>*Suicide, my ass*, was my instant, and silent, reaction. Why hadn't Sybil hired me to come out here to read his grave first, instead of sending me to the woods to find Teenie? Of course this boy hadn't shot himself. Dell Teague had been murdered, just like his wild girlfriend. I opened my eyes. Hollis Boxleitner had swung around to check on what I was doing. I looked into the intent face of the deputy. ""No suicide here,"" I said.</source_text>
+<task>Provide only the translation following the required output format.</task>","<role>You are a meticulous and highly critical linguistic editor tasked with evaluating translations.</role>
+<goal>Your goal is to ensure that every translation meets the highest standards of quality.<goal>
+<requirements>
+  <item>The translation must read naturally in the target language.</item>
+  <item>It must accurately convey the meaning of the source text.</item>
+  <item>Pay close attention to tone, style, any cultural nuances, and markedness of the source text.</item>
+</requirements>
+<output_format>
+  <item>The analysis tag contains the analysis of the source text in terms of its meaning, tone, style, and any particular challenges or nuances.</item>
+  <item>The evaluation of the translation attempt under the evaluation tag, identifying specific issues, errors, or awkward phrasings, along with multiple alternatives or suggestions for each.</item>
+  <item>The grade tag must contain 'fail' if you have any suggestions (even minor ones). Respond with 'pass' only if it requires no changes whatsoever and you have nothing to add.</item>
+</output_format>","<context>
+  <text_type>fictional text, novel excerpt</text_type>
+  <source_lang>English</source_lang>
+  <target_lang>Indonesian</target_lang>
+  <external_knowledge>
+    <item>Novel synopsis: The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.</item>
+    <item>Dell Teague, Sybil Teague's son, was Teenie's boyfriend</item>
+  </external_knowledge>
+</context>
+<source_text>*Suicide, my ass*, was my instant, and silent, reaction. Why hadn't Sybil hired me to come out here to read his grave first, instead of sending me to the woods to find Teenie? Of course this boy hadn't shot himself. Dell Teague had been murdered, just like his wild girlfriend. I opened my eyes. Hollis Boxleitner had swung around to check on what I was doing. I looked into the intent face of the deputy. ""No suicide here,"" I said.</source_text>
+<attempt>Reaksi instan, dalam hati saya, adalah *bunuh diri, omong kosong*. Mengapa Sybil tidak mempekerjakan saya untuk membaca makamnya terlebih dahulu, alih-alih mengirim saya ke hutan untuk mencari Teenie? Tentu saja anak ini tidak bunuh diri. Dell Teague dibunuh, sama seperti pacar liarnya. Saya membuka mata. Hollis Boxleitner berputar untuk melihat apa yang sedang saya lakukan. Saya menatap wajah serius petugas polisi itu. ""Tidak ada bunuh diri di sini,"" kataku.</attempt>
+<task>Evaluate the content in the attempt tag based on the source text provided. Provide only the evaluation following the required output format.</task>"
+2,1,1,1011,0.01,827,0.01,"I don't like being treated like a confidence trickster, and I'm sure Tolliver likes it even less. I retreat inside myself, and I don't let them touch my quick. Tolliver tries to do that, too, but he is less successful. He gets very upset when people impugn our honor.","Aku tidak suka diperlakukan seperti penipu ulung, dan aku yakin Tolliver bahkan lebih membencinya. Aku menarik diri ke dalam diriku sendiri, dan aku tidak membiarkan mereka memanfaatkan kecerdasanku. Tolliver mencoba melakukan hal yang sama, tetapi kurang berhasil. Dia sangat kesal ketika orang-orang mencoreng reputasi kami.",fail,"<retelling>Harper merasa kesal diperlakukan seperti penipu ulung, dan dia yakin Tolliver bahkan lebih membencinya. Dia menarik diri ke dalam dirinya sendiri, menolak untuk membiarkan orang lain memanfaatkan kecerdasannya. Tolliver mencoba melakukan hal yang sama, tetapi kurang berhasil. Dia sangat kesal ketika orang-orang mencoreng reputasi mereka.</retelling>
+<translation>Aku tidak suka diperlakukan seperti penipu ulung, dan aku yakin Tolliver bahkan lebih membencinya. Aku menarik diri ke dalam diriku sendiri, dan aku tidak membiarkan mereka memanfaatkan kecerdasanku. Tolliver mencoba melakukan hal yang sama, tetapi kurang berhasil. Dia sangat kesal ketika orang-orang mencoreng reputasi kami.</translation>","<analysis>The source text uses figurative language (""touch my quick,"" referring to a person's nerve or sensitivity) and colloquialisms (""confidence trickster""). The tone is defensive and slightly indignant. The sentence structure is relatively simple and direct. The key is to maintain this directness and the slightly cynical tone in Indonesian. The attempt is a generally accurate translation, but the phrase ""memanfaatkan kecerdasanku"" (exploit my intelligence) feels a bit formal and less impactful than the original ""touch my quick."" ""Mencoreng reputasi kami"" (blemish our reputation) is a perfectly acceptable translation of ""impugn our honor,"" but lacks the slightly more forceful connotation of the original. The overall flow is good, but could be slightly improved for a more natural feel.</analysis>
+<evaluation>The translation is mostly accurate but lacks a certain punch and naturalness. ""Memanfaatkan kecerdasanku"" is a bit too literal and formal. Consider alternatives that capture the feeling of being overly scrutinized or having one's sensitivities violated. For example, ""Aku tidak membiarkan mereka mengusikku"" (I don't let them bother me/poke at me) or ""Aku tidak membiarkan mereka menggangguku"" (I don't let them disturb me). ""Mencoreng reputasi kami"" is fine, but perhaps ""merendahkan kehormatan kami"" (degrade our honor) would be a stronger fit. The overall tone is acceptable, but could be sharpened to better reflect Harper's resentment.</evaluation>
+<grade>fail</grade>",Mon Nov 17 05:06:35 2025,"<role>You are a professional linguistic translator.</role>
+<goal>Your primary directive is to provide a fluent, accurate, and contextually appropriate translation.</goal>.
+<requirements>
+  <item>Pay attention to any markedness, whether syntactical or lexical, that should be considered in the translation.</item>
+  <item>Preserve the tone, style, and intent of the source text.</item>
+  <item>Ensure the translation reads naturally in the target language.</item>
+  <item>Adhere to the context provided, as it may contain important information that affects your translation choices.</item>
+</requirements>
+<output_format>
+  <item>First, paraphrase and retell the source text in your own words to demonstrate your understanding in the retelling tag.</item>
+  <item>Then, provide your translation of the source text.</item>
+</output_format>","<context>
+  <text_type>fictional text, novel excerpt</text_type>
+  <source_lang>English</source_lang>
+  <target_lang>Indonesian</target_lang>
+  <external_knowledge>
+    <item>Novel synopsis: The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.</item>
+    <item>Previous paragraph: WE had a dismal time at the police station. The state police thought I was a blood-sucking leech. I'd anticipated their attitude as we drove into town, but it wore me out anyway. The male faces followed each other in slow succession. Thin, heavy, white, black, intelligent, dense; they all shared an opinion of me they didn't take any pains to hide. I guess they thought Tolliver was the enabler of the blood-sucking leech.</item>
+  </external_knowledge>
+</context>
+<source_text>I don't like being treated like a confidence trickster, and I'm sure Tolliver likes it even less. I retreat inside myself, and I don't let them touch my quick. Tolliver tries to do that, too, but he is less successful. He gets very upset when people impugn our honor.</source_text>
+<task>Provide only the translation following the required output format.</task>","<role>You are a meticulous and highly critical linguistic editor tasked with evaluating translations.</role>
+<goal>Your goal is to ensure that every translation meets the highest standards of quality.<goal>
+<requirements>
+  <item>The translation must read naturally in the target language.</item>
+  <item>It must accurately convey the meaning of the source text.</item>
+  <item>Pay close attention to tone, style, any cultural nuances, and markedness of the source text.</item>
+</requirements>
+<output_format>
+  <item>The analysis tag contains the analysis of the source text in terms of its meaning, tone, style, and any particular challenges or nuances.</item>
+  <item>The evaluation of the translation attempt under the evaluation tag, identifying specific issues, errors, or awkward phrasings, along with multiple alternatives or suggestions for each.</item>
+  <item>The grade tag must contain 'fail' if you have any suggestions (even minor ones). Respond with 'pass' only if it requires no changes whatsoever and you have nothing to add.</item>
+</output_format>","<context>
+  <text_type>fictional text, novel excerpt</text_type>
+  <source_lang>English</source_lang>
+  <target_lang>Indonesian</target_lang>
+  <external_knowledge>
+    <item>Novel synopsis: The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.</item>
+    <item>Previous paragraph: WE had a dismal time at the police station. The state police thought I was a blood-sucking leech. I'd anticipated their attitude as we drove into town, but it wore me out anyway. The male faces followed each other in slow succession. Thin, heavy, white, black, intelligent, dense; they all shared an opinion of me they didn't take any pains to hide. I guess they thought Tolliver was the enabler of the blood-sucking leech.</item>
+  </external_knowledge>
+</context>
+<source_text>I don't like being treated like a confidence trickster, and I'm sure Tolliver likes it even less. I retreat inside myself, and I don't let them touch my quick. Tolliver tries to do that, too, but he is less successful. He gets very upset when people impugn our honor.</source_text>
+<attempt>Aku tidak suka diperlakukan seperti penipu ulung, dan aku yakin Tolliver bahkan lebih membencinya. Aku menarik diri ke dalam diriku sendiri, dan aku tidak membiarkan mereka memanfaatkan kecerdasanku. Tolliver mencoba melakukan hal yang sama, tetapi kurang berhasil. Dia sangat kesal ketika orang-orang mencoreng reputasi kami.</attempt>
+<task>Evaluate the content in the attempt tag based on the source text provided. Provide only the evaluation following the required output format.</task>"
+2,1,2,1012,0.01,827,0.01,"I don't like being treated like a confidence trickster, and I'm sure Tolliver likes it even less. I retreat inside myself, and I don't let them touch my quick. Tolliver tries to do that, too, but he is less successful. He gets very upset when people impugn our honor.","Aku tidak suka diperlakukan seperti penipu ulung, dan aku yakin Tolliver bahkan lebih membencinya. Aku menarik diri ke dalam diriku sendiri, dan aku tidak membiarkan mereka mengusikku. Tolliver mencoba melakukan hal yang sama, tetapi kurang berhasil. Dia sangat kesal ketika orang-orang merendahkan kehormatan kami.",pass,"<retelling>Aku tidak suka diperlakukan seperti penipu ulung, dan aku yakin Tolliver bahkan lebih membencinya. Aku menarik diri ke dalam diriku sendiri, dan aku tidak membiarkan mereka mengusikku. Tolliver mencoba melakukan hal yang sama, tetapi kurang berhasil. Dia sangat kesal ketika orang-orang merendahkan kehormatan kami.</retelling>
+<translation>Aku tidak suka diperlakukan seperti penipu ulung, dan aku yakin Tolliver bahkan lebih membencinya. Aku menarik diri ke dalam diriku sendiri, dan aku tidak membiarkan mereka mengusikku. Tolliver mencoba melakukan hal yang sama, tetapi kurang berhasil. Dia sangat kesal ketika orang-orang merendahkan kehormatan kami.</translation>","<analysis>The translation is a solid improvement. The use of ""mengusikku"" (bother me/poke at me) is a good choice, capturing the nuance of ""touch my quick"" better than a more literal translation. ""Merendahkan kehormatan kami"" (degrade our honor) is also a strong and accurate rendering of ""impugn our honor."" The overall tone and flow are natural and maintain the defensive, slightly resentful feeling of the original. The sentence structure remains simple and direct, which is appropriate for the character and the situation.</analysis>
+<evaluation>The translation is very good and effectively conveys the meaning and tone of the original text. The word choices are appropriate and natural-sounding in Indonesian. The use of ""mengusikku"" is a particularly strong choice. There are no glaring errors or awkward phrasings. The translation successfully captures Harper's frustration and defensiveness.</evaluation>
+<grade>pass</grade>",Mon Nov 17 05:07:16 2025,"<role>You are a professional linguistic translator.</role>
+<goal>Your primary directive is to provide a fluent, accurate, and contextually appropriate translation.</goal>.
+<requirements>
+  <item>Pay attention to any markedness, whether syntactical or lexical, that should be considered in the translation.</item>
+  <item>Preserve the tone, style, and intent of the source text.</item>
+  <item>Ensure the translation reads naturally in the target language.</item>
+  <item>Adhere to the context provided, as it may contain important information that affects your translation choices.</item>
+</requirements>
+<output_format>
+  <item>First, paraphrase and retell the source text in your own words to demonstrate your understanding in the retelling tag.</item>
+  <item>Then, provide your translation of the source text.</item>
+</output_format>","<context>
+  <text_type>fictional text, novel excerpt</text_type>
+  <source_lang>English</source_lang>
+  <target_lang>Indonesian</target_lang>
+  <external_knowledge>
+    <item>Novel synopsis: The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.</item>
+    <item>Previous paragraph: WE had a dismal time at the police station. The state police thought I was a blood-sucking leech. I'd anticipated their attitude as we drove into town, but it wore me out anyway. The male faces followed each other in slow succession. Thin, heavy, white, black, intelligent, dense; they all shared an opinion of me they didn't take any pains to hide. I guess they thought Tolliver was the enabler of the blood-sucking leech.</item>
+  </external_knowledge>
+</context>
+<source_text>I don't like being treated like a confidence trickster, and I'm sure Tolliver likes it even less. I retreat inside myself, and I don't let them touch my quick. Tolliver tries to do that, too, but he is less successful. He gets very upset when people impugn our honor.</source_text>
+<evaluation><analysis>The source text uses figurative language (""touch my quick,"" referring to a person's nerve or sensitivity) and colloquialisms (""confidence trickster""). The tone is defensive and slightly indignant. The sentence structure is relatively simple and direct. The key is to maintain this directness and the slightly cynical tone in Indonesian. The attempt is a generally accurate translation, but the phrase ""memanfaatkan kecerdasanku"" (exploit my intelligence) feels a bit formal and less impactful than the original ""touch my quick."" ""Mencoreng reputasi kami"" (blemish our reputation) is a perfectly acceptable translation of ""impugn our honor,"" but lacks the slightly more forceful connotation of the original. The overall flow is good, but could be slightly improved for a more natural feel.</analysis>
+<evaluation>The translation is mostly accurate but lacks a certain punch and naturalness. ""Memanfaatkan kecerdasanku"" is a bit too literal and formal. Consider alternatives that capture the feeling of being overly scrutinized or having one's sensitivities violated. For example, ""Aku tidak membiarkan mereka mengusikku"" (I don't let them bother me/poke at me) or ""Aku tidak membiarkan mereka menggangguku"" (I don't let them disturb me). ""Mencoreng reputasi kami"" is fine, but perhaps ""merendahkan kehormatan kami"" (degrade our honor) would be a stronger fit. The overall tone is acceptable, but could be sharpened to better reflect Harper's resentment.</evaluation>
+<grade>fail</grade></evaluation>
+<task>A translation attempt has been evaluated. Your task is to consider the editor's evaluation and then revise the translation accordingly. Follow the output format</task>","<role>You are a meticulous and highly critical linguistic editor tasked with evaluating translations.</role>
+<goal>Your goal is to ensure that every translation meets the highest standards of quality.<goal>
+<requirements>
+  <item>The translation must read naturally in the target language.</item>
+  <item>It must accurately convey the meaning of the source text.</item>
+  <item>Pay close attention to tone, style, any cultural nuances, and markedness of the source text.</item>
+</requirements>
+<output_format>
+  <item>The analysis tag contains the analysis of the source text in terms of its meaning, tone, style, and any particular challenges or nuances.</item>
+  <item>The evaluation of the translation attempt under the evaluation tag, identifying specific issues, errors, or awkward phrasings, along with multiple alternatives or suggestions for each.</item>
+  <item>The grade tag must contain 'fail' if you have any suggestions (even minor ones). Respond with 'pass' only if it requires no changes whatsoever and you have nothing to add.</item>
+</output_format>","<context>
+  <text_type>fictional text, novel excerpt</text_type>
+  <source_lang>English</source_lang>
+  <target_lang>Indonesian</target_lang>
+  <external_knowledge>
+    <item>Novel synopsis: The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.</item>
+    <item>Previous paragraph: WE had a dismal time at the police station. The state police thought I was a blood-sucking leech. I'd anticipated their attitude as we drove into town, but it wore me out anyway. The male faces followed each other in slow succession. Thin, heavy, white, black, intelligent, dense; they all shared an opinion of me they didn't take any pains to hide. I guess they thought Tolliver was the enabler of the blood-sucking leech.</item>
+  </external_knowledge>
+</context>
+<source_text>I don't like being treated like a confidence trickster, and I'm sure Tolliver likes it even less. I retreat inside myself, and I don't let them touch my quick. Tolliver tries to do that, too, but he is less successful. He gets very upset when people impugn our honor.</source_text>
+<attempt>Aku tidak suka diperlakukan seperti penipu ulung, dan aku yakin Tolliver bahkan lebih membencinya. Aku menarik diri ke dalam diriku sendiri, dan aku tidak membiarkan mereka mengusikku. Tolliver mencoba melakukan hal yang sama, tetapi kurang berhasil. Dia sangat kesal ketika orang-orang merendahkan kehormatan kami.</attempt>
+<task>Evaluate the content in the attempt tag based on the source text provided. Provide only the evaluation following the required output format.</task>"
+3,1,1,1011,0.01,827,0.01,"""Tell me about your dream house,"" Hollis said, smiling.
+
+""Okay,"" I said, slowly. This was something I didn't talk about too often. ""It will have to be off the beaten road, of course. I want it to look like a log cabin, but without the inconveniences of a real log cabin. I found a plan on the Internet, and I bought it. But of course, I want to alter it a little.""
+
+""Of course,"" he said, taking a sip of beer.","“Ceritakan tentang rumah impianmu,” kata Hollis sambil tersenyum.
+
+“Baiklah,” jawabku, perlahan. Ini adalah sesuatu yang jarang sekali aku bicarakan. “Tentu saja, rumah itu harus jauh dari jalan utama. Aku ingin tampilannya seperti pondok kayu, tetapi tanpa ketidaknyamanan pondok kayu yang sebenarnya. Aku menemukan rancangannya di internet, dan aku membelinya. Tapi tentu saja, aku ingin mengubahnya sedikit.”
+
+“Tentu,” katanya, sambil menyesap bir.",fail,"<retelling>Hollis initiates a conversation by asking about the deceased's dream house, a request that makes the narrator, Harper, slightly hesitant. She explains that her ideal home would be secluded, resembling a log cabin but with modern conveniences. She acquired plans online and purchased them, intending to make some modifications. Hollis acknowledges her vision with a casual remark while taking a drink.</retelling>
+<translation>“Ceritakan tentang rumah impianmu,” kata Hollis sambil tersenyum.
+
+“Baiklah,” jawabku, perlahan. Ini adalah sesuatu yang jarang sekali aku bicarakan. “Tentu saja, rumah itu harus jauh dari jalan utama. Aku ingin tampilannya seperti pondok kayu, tetapi tanpa ketidaknyamanan pondok kayu yang sebenarnya. Aku menemukan rancangannya di internet, dan aku membelinya. Tapi tentu saja, aku ingin mengubahnya sedikit.”
+
+“Tentu,” katanya, sambil menyesap bir.</translation>","<analysis>The translation is generally accurate and conveys the meaning of the source text. However, there are a few areas where the Indonesian feels slightly unnatural and could be improved for a more fluid reading experience. The repetition of ""Tentu saja"" (Of course) feels a bit clunky. While grammatically correct, it lacks the nuance of the original English. The phrase ""ketidaknyamanan pondok kayu yang sebenarnya"" (the actual inconveniences of a real log cabin) is a bit wordy and could be simplified. The overall tone is preserved, but the phrasing could be more idiomatic.</analysis>
+<evaluation>The translation is mostly good, but needs refinement. Here's a breakdown:
+
+*   **""Ceritakan tentang rumah impianmu""**: Accurate and natural.
+*   **""Baiklah, jawabku, perlahan. Ini adalah sesuatu yang jarang sekali aku bicarakan.""**:  ""Perlahan"" (slowly) is a bit redundant after ""jawabku"" (I answered). Consider removing it. ""Jarang sekali aku bicarakan"" is fine, but could be slightly more natural as ""jarang aku membicarakannya"" (rarely do I talk about it).
+*   **""Tentu saja, rumah itu harus jauh dari jalan utama.""**: The repetition of ""Tentu saja"" is a little awkward. Consider replacing it with something like ""Tentu saja, rumah itu harus berada di tempat yang terpencil."" (Of course, the house must be in a secluded place.)
+*   **""Aku ingin tampilannya seperti pondok kayu, tetapi tanpa ketidaknyamanan pondok kayu yang sebenarnya.""**: This is wordy. A better option would be: ""Aku ingin rumah itu terlihat seperti pondok kayu, tapi tanpa semua kerumitan pondok kayu."" (I want the house to look like a log cabin, but without all the complexities of a log cabin.)
+*   **""Aku menemukan rancangannya di internet, dan aku membelinya.""**: Accurate.
+*   **""Tapi tentu saja, aku ingin mengubahnya sedikit.""**: Again, the repetition of ""Tentu saja"" is a bit clunky. Consider ""Tapi tentu saja, aku ingin sedikit mengubahnya."" (But of course, I want to change it a little.)
+*   **""Tentu, katanya, sambil menyesap bir.""**: Accurate.
+
+**Suggestions:**
+
+1.  Replace the repeated ""Tentu saja"" with alternatives like ""Tentu saja,"" ""Memang,"" or rephrase the sentence to avoid the repetition.
+2.  Simplify the phrasing in the sentence about the inconveniences of a log cabin.
+3.  Consider ""jarang aku membicarakannya"" instead of ""jarang sekali aku bicarakan.""
+4.  Replace ""sambil menyesap bir"" with ""sambil minum bir"" for a more natural flow, although ""menyesap"" isn't incorrect.
+</evaluation>
+<grade>fail</grade>",Mon Nov 17 05:07:52 2025,"<role>You are a professional linguistic translator.</role>
+<goal>Your primary directive is to provide a fluent, accurate, and contextually appropriate translation.</goal>.
+<requirements>
+  <item>Pay attention to any markedness, whether syntactical or lexical, that should be considered in the translation.</item>
+  <item>Preserve the tone, style, and intent of the source text.</item>
+  <item>Ensure the translation reads naturally in the target language.</item>
+  <item>Adhere to the context provided, as it may contain important information that affects your translation choices.</item>
+</requirements>
+<output_format>
+  <item>First, paraphrase and retell the source text in your own words to demonstrate your understanding in the retelling tag.</item>
+  <item>Then, provide your translation of the source text.</item>
+</output_format>","<context>
+  <text_type>fictional text, novel excerpt</text_type>
+  <source_lang>English</source_lang>
+  <target_lang>Indonesian</target_lang>
+  <external_knowledge>
+    <item>Novel synopsis: The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.</item>
+  </external_knowledge>
+</context>
+<source_text>""Tell me about your dream house,"" Hollis said, smiling.
+
+""Okay,"" I said, slowly. This was something I didn't talk about too often. ""It will have to be off the beaten road, of course. I want it to look like a log cabin, but without the inconveniences of a real log cabin. I found a plan on the Internet, and I bought it. But of course, I want to alter it a little.""
+
+""Of course,"" he said, taking a sip of beer.</source_text>
+<task>Provide only the translation following the required output format.</task>","<role>You are a meticulous and highly critical linguistic editor tasked with evaluating translations.</role>
+<goal>Your goal is to ensure that every translation meets the highest standards of quality.<goal>
+<requirements>
+  <item>The translation must read naturally in the target language.</item>
+  <item>It must accurately convey the meaning of the source text.</item>
+  <item>Pay close attention to tone, style, any cultural nuances, and markedness of the source text.</item>
+</requirements>
+<output_format>
+  <item>The analysis tag contains the analysis of the source text in terms of its meaning, tone, style, and any particular challenges or nuances.</item>
+  <item>The evaluation of the translation attempt under the evaluation tag, identifying specific issues, errors, or awkward phrasings, along with multiple alternatives or suggestions for each.</item>
+  <item>The grade tag must contain 'fail' if you have any suggestions (even minor ones). Respond with 'pass' only if it requires no changes whatsoever and you have nothing to add.</item>
+</output_format>","<context>
+  <text_type>fictional text, novel excerpt</text_type>
+  <source_lang>English</source_lang>
+  <target_lang>Indonesian</target_lang>
+  <external_knowledge>
+    <item>Novel synopsis: The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.</item>
+  </external_knowledge>
+</context>
+<source_text>""Tell me about your dream house,"" Hollis said, smiling.
+
+""Okay,"" I said, slowly. This was something I didn't talk about too often. ""It will have to be off the beaten road, of course. I want it to look like a log cabin, but without the inconveniences of a real log cabin. I found a plan on the Internet, and I bought it. But of course, I want to alter it a little.""
+
+""Of course,"" he said, taking a sip of beer.</source_text>
+<attempt>“Ceritakan tentang rumah impianmu,” kata Hollis sambil tersenyum.
+
+“Baiklah,” jawabku, perlahan. Ini adalah sesuatu yang jarang sekali aku bicarakan. “Tentu saja, rumah itu harus jauh dari jalan utama. Aku ingin tampilannya seperti pondok kayu, tetapi tanpa ketidaknyamanan pondok kayu yang sebenarnya. Aku menemukan rancangannya di internet, dan aku membelinya. Tapi tentu saja, aku ingin mengubahnya sedikit.”
+
+“Tentu,” katanya, sambil menyesap bir.</attempt>
+<task>Evaluate the content in the attempt tag based on the source text provided. Provide only the evaluation following the required output format.</task>"
+3,1,2,1012,0.01,827,0.01,"""Tell me about your dream house,"" Hollis said, smiling.
+
+""Okay,"" I said, slowly. This was something I didn't talk about too often. ""It will have to be off the beaten road, of course. I want it to look like a log cabin, but without the inconveniences of a real log cabin. I found a plan on the Internet, and I bought it. But of course, I want to alter it a little.""
+
+""Of course,"" he said, taking a sip of beer.","“Ceritakan tentang rumah impianmu,” kata Hollis sambil tersenyum.
+
+“Baiklah,” jawabku, perlahan. Ini adalah sesuatu yang jarang aku bicarakan. “Tentu saja, rumah itu harus berada di tempat yang terpencil. Aku ingin rumah itu terlihat seperti pondok kayu, tapi tanpa semua kerumitan pondok kayu. Aku menemukan rancangannya di internet, dan aku membelinya. Tapi tentu saja, aku ingin sedikit mengubahnya.”
+
+“Tentu,” katanya, sambil minum bir.",pass,"<retelling>Hollis initiates a conversation by asking about the deceased's dream house, a request that makes the narrator, Harper, slightly hesitant. She explains that her ideal home would be secluded, resembling a log cabin but with modern conveniences. She acquired plans online and purchased them, intending to make some modifications. Hollis acknowledges her vision with a casual remark while taking a drink.</retelling>
+<translation>“Ceritakan tentang rumah impianmu,” kata Hollis sambil tersenyum.
+
+“Baiklah,” jawabku, perlahan. Ini adalah sesuatu yang jarang aku bicarakan. “Tentu saja, rumah itu harus berada di tempat yang terpencil. Aku ingin rumah itu terlihat seperti pondok kayu, tapi tanpa semua kerumitan pondok kayu. Aku menemukan rancangannya di internet, dan aku membelinya. Tapi tentu saja, aku ingin sedikit mengubahnya.”
+
+“Tentu,” katanya, sambil minum bir.</translation>","<analysis>The translation is a direct and accurate rendition of the source text. The changes made in the previous iteration successfully address the issues of repetition and wordiness. The use of ""terpencil"" (remote) is a good choice for ""off the beaten road."" The phrasing is natural and flows well in Indonesian. The overall tone and nuance are well preserved.</analysis>
+<evaluation>The translation is excellent and requires no further changes. The previous suggestions have been effectively implemented, resulting in a natural and accurate Indonesian translation. The use of ""terpencil"" is a strong choice, and the sentence structure is smooth. The repetition of ""Tentu saja"" has been appropriately addressed. The translation effectively captures the meaning and tone of the original English text.</evaluation>
+<grade>pass</grade>",Mon Nov 17 05:08:41 2025,"<role>You are a professional linguistic translator.</role>
+<goal>Your primary directive is to provide a fluent, accurate, and contextually appropriate translation.</goal>.
+<requirements>
+  <item>Pay attention to any markedness, whether syntactical or lexical, that should be considered in the translation.</item>
+  <item>Preserve the tone, style, and intent of the source text.</item>
+  <item>Ensure the translation reads naturally in the target language.</item>
+  <item>Adhere to the context provided, as it may contain important information that affects your translation choices.</item>
+</requirements>
+<output_format>
+  <item>First, paraphrase and retell the source text in your own words to demonstrate your understanding in the retelling tag.</item>
+  <item>Then, provide your translation of the source text.</item>
+</output_format>","<context>
+  <text_type>fictional text, novel excerpt</text_type>
+  <source_lang>English</source_lang>
+  <target_lang>Indonesian</target_lang>
+  <external_knowledge>
+    <item>Novel synopsis: The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.</item>
+  </external_knowledge>
+</context>
+<source_text>""Tell me about your dream house,"" Hollis said, smiling.
+
+""Okay,"" I said, slowly. This was something I didn't talk about too often. ""It will have to be off the beaten road, of course. I want it to look like a log cabin, but without the inconveniences of a real log cabin. I found a plan on the Internet, and I bought it. But of course, I want to alter it a little.""
+
+""Of course,"" he said, taking a sip of beer.</source_text>
+<evaluation><analysis>The translation is generally accurate and conveys the meaning of the source text. However, there are a few areas where the Indonesian feels slightly unnatural and could be improved for a more fluid reading experience. The repetition of ""Tentu saja"" (Of course) feels a bit clunky. While grammatically correct, it lacks the nuance of the original English. The phrase ""ketidaknyamanan pondok kayu yang sebenarnya"" (the actual inconveniences of a real log cabin) is a bit wordy and could be simplified. The overall tone is preserved, but the phrasing could be more idiomatic.</analysis>
+<evaluation>The translation is mostly good, but needs refinement. Here's a breakdown:
+
+*   **""Ceritakan tentang rumah impianmu""**: Accurate and natural.
+*   **""Baiklah, jawabku, perlahan. Ini adalah sesuatu yang jarang sekali aku bicarakan.""**:  ""Perlahan"" (slowly) is a bit redundant after ""jawabku"" (I answered). Consider removing it. ""Jarang sekali aku bicarakan"" is fine, but could be slightly more natural as ""jarang aku membicarakannya"" (rarely do I talk about it).
+*   **""Tentu saja, rumah itu harus jauh dari jalan utama.""**: The repetition of ""Tentu saja"" is a little awkward. Consider replacing it with something like ""Tentu saja, rumah itu harus berada di tempat yang terpencil."" (Of course, the house must be in a secluded place.)
+*   **""Aku ingin tampilannya seperti pondok kayu, tetapi tanpa ketidaknyamanan pondok kayu yang sebenarnya.""**: This is wordy. A better option would be: ""Aku ingin rumah itu terlihat seperti pondok kayu, tapi tanpa semua kerumitan pondok kayu."" (I want the house to look like a log cabin, but without all the complexities of a log cabin.)
+*   **""Aku menemukan rancangannya di internet, dan aku membelinya.""**: Accurate.
+*   **""Tapi tentu saja, aku ingin mengubahnya sedikit.""**: Again, the repetition of ""Tentu saja"" is a bit clunky. Consider ""Tapi tentu saja, aku ingin sedikit mengubahnya."" (But of course, I want to change it a little.)
+*   **""Tentu, katanya, sambil menyesap bir.""**: Accurate.
+
+**Suggestions:**
+
+1.  Replace the repeated ""Tentu saja"" with alternatives like ""Tentu saja,"" ""Memang,"" or rephrase the sentence to avoid the repetition.
+2.  Simplify the phrasing in the sentence about the inconveniences of a log cabin.
+3.  Consider ""jarang aku membicarakannya"" instead of ""jarang sekali aku bicarakan.""
+4.  Replace ""sambil menyesap bir"" with ""sambil minum bir"" for a more natural flow, although ""menyesap"" isn't incorrect.
+</evaluation>
+<grade>fail</grade></evaluation>
+<task>A translation attempt has been evaluated. Your task is to consider the editor's evaluation and then revise the translation accordingly. Follow the output format</task>","<role>You are a meticulous and highly critical linguistic editor tasked with evaluating translations.</role>
+<goal>Your goal is to ensure that every translation meets the highest standards of quality.<goal>
+<requirements>
+  <item>The translation must read naturally in the target language.</item>
+  <item>It must accurately convey the meaning of the source text.</item>
+  <item>Pay close attention to tone, style, any cultural nuances, and markedness of the source text.</item>
+</requirements>
+<output_format>
+  <item>The analysis tag contains the analysis of the source text in terms of its meaning, tone, style, and any particular challenges or nuances.</item>
+  <item>The evaluation of the translation attempt under the evaluation tag, identifying specific issues, errors, or awkward phrasings, along with multiple alternatives or suggestions for each.</item>
+  <item>The grade tag must contain 'fail' if you have any suggestions (even minor ones). Respond with 'pass' only if it requires no changes whatsoever and you have nothing to add.</item>
+</output_format>","<context>
+  <text_type>fictional text, novel excerpt</text_type>
+  <source_lang>English</source_lang>
+  <target_lang>Indonesian</target_lang>
+  <external_knowledge>
+    <item>Novel synopsis: The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.</item>
+  </external_knowledge>
+</context>
+<source_text>""Tell me about your dream house,"" Hollis said, smiling.
+
+""Okay,"" I said, slowly. This was something I didn't talk about too often. ""It will have to be off the beaten road, of course. I want it to look like a log cabin, but without the inconveniences of a real log cabin. I found a plan on the Internet, and I bought it. But of course, I want to alter it a little.""
+
+""Of course,"" he said, taking a sip of beer.</source_text>
+<attempt>“Ceritakan tentang rumah impianmu,” kata Hollis sambil tersenyum.
+
+“Baiklah,” jawabku, perlahan. Ini adalah sesuatu yang jarang aku bicarakan. “Tentu saja, rumah itu harus berada di tempat yang terpencil. Aku ingin rumah itu terlihat seperti pondok kayu, tapi tanpa semua kerumitan pondok kayu. Aku menemukan rancangannya di internet, dan aku membelinya. Tapi tentu saja, aku ingin sedikit mengubahnya.”
+
+“Tentu,” katanya, sambil minum bir.</attempt>
+<task>Evaluate the content in the attempt tag based on the source text provided. Provide only the evaluation following the required output format.</task>"
+4,1,1,1011,0.01,827,0.01,"It would be two bedrooms and a study, with a family room. There'd be a kitchen here, with the washroom right off of it."" I was looking down at the table, drawing with my finger. ""Around back, there'd be a *porte cochere* for the cars, so you could carry groceries right into the kitchen without getting wet. There's a deck off the right side of the kitchen, see? Or maybe I'd put it off the family room. That's where the fireplace will be, and you could keep your firewood on the deck. And you could put your gas grill on the deck. For steaks.""","Akan ada dua kamar tidur dan ruang kerja, serta ruang keluarga. Dapur akan berada di sana, dengan kamar mandi tepat di sampingnya. Di bagian belakang, akan ada sebuah *area parkir tertutup* untuk mobil, sehingga Anda bisa membawa belanjaan langsung ke dapur tanpa terkena hujan. Ada teras di sisi kanan dapur, atau mungkin di sisi ruang keluarga. Di sana akan ada perapian, dan Anda bisa menyimpan kayu bakar di teras. Anda juga bisa meletakkan kompor gas di teras itu, untuk memanggang steak.",fail,"<retelling>Harper sedang menjelaskan denah rumah yang akan dibangun. Ada dua kamar tidur, ruang kerja, dan ruang keluarga. Dapur akan terhubung langsung dengan kamar mandi. Di bagian belakang rumah, akan ada *porte cochere* untuk memudahkan membawa belanjaan langsung ke dapur tanpa basah. Ada juga teras di sisi kanan dapur, atau mungkin di sisi ruang keluarga, tempat perapian akan berada dan kayu bakar bisa disimpan. Teras itu juga bisa digunakan untuk memasak steak dengan kompor gas.</retelling>
+<translation>Akan ada dua kamar tidur dan ruang kerja, serta ruang keluarga. Dapur akan berada di sana, dengan kamar mandi tepat di sampingnya. Di bagian belakang, akan ada sebuah *area parkir tertutup* untuk mobil, sehingga Anda bisa membawa belanjaan langsung ke dapur tanpa terkena hujan. Ada teras di sisi kanan dapur, atau mungkin di sisi ruang keluarga. Di sana akan ada perapian, dan Anda bisa menyimpan kayu bakar di teras. Anda juga bisa meletakkan kompor gas di teras itu, untuk memanggang steak.</translation>","<analysis>The source text describes a house layout with a focus on convenience and comfort. Harper is detailing the features of a house she is describing, likely for a client or as part of her work. The tone is casual and conversational, reflecting Harper's personality and her relationship with Tolliver. The use of ""porte cochere"" is a detail that adds a touch of elegance and practicality. The description of the outdoor space emphasizes functionality and leisure.</analysis>
+<evaluation>The translation is generally good and accurately conveys the meaning of the source text. The substitution of ""*porte cochere*"" with ""*area parkir tertutup*"" is a sensible choice, as it avoids a potentially confusing or unfamiliar term for Indonesian readers. However, the phrasing ""sehingga Anda bisa membawa belanjaan langsung ke dapur tanpa terkena hujan"" is a bit clunky. A more natural phrasing would be ""agar Anda bisa membawa belanjaan langsung ke dapur tanpa basah."" Also, the repetition of ""di teras itu"" could be improved with a synonym or rephrasing. While the translation is understandable, it lacks a certain fluidity and naturalness. The overall tone is slightly formal compared to the original's casual tone. </evaluation>
+<grade>fail</grade>",Mon Nov 17 05:09:07 2025,"<role>You are a professional linguistic translator.</role>
+<goal>Your primary directive is to provide a fluent, accurate, and contextually appropriate translation.</goal>.
+<requirements>
+  <item>Pay attention to any markedness, whether syntactical or lexical, that should be considered in the translation.</item>
+  <item>Preserve the tone, style, and intent of the source text.</item>
+  <item>Ensure the translation reads naturally in the target language.</item>
+  <item>Adhere to the context provided, as it may contain important information that affects your translation choices.</item>
+</requirements>
+<output_format>
+  <item>First, paraphrase and retell the source text in your own words to demonstrate your understanding in the retelling tag.</item>
+  <item>Then, provide your translation of the source text.</item>
+</output_format>","<context>
+  <text_type>fictional text, novel excerpt</text_type>
+  <source_lang>English</source_lang>
+  <target_lang>Indonesian</target_lang>
+  <external_knowledge>
+    <item>Novel synopsis: The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.</item>
+    <item>'porte cochere' is not a commonly used term in Indonesian.</item>
+  </external_knowledge>
+</context>
+<source_text>It would be two bedrooms and a study, with a family room. There'd be a kitchen here, with the washroom right off of it."" I was looking down at the table, drawing with my finger. ""Around back, there'd be a *porte cochere* for the cars, so you could carry groceries right into the kitchen without getting wet. There's a deck off the right side of the kitchen, see? Or maybe I'd put it off the family room. That's where the fireplace will be, and you could keep your firewood on the deck. And you could put your gas grill on the deck. For steaks.""</source_text>
+<task>Provide only the translation following the required output format.</task>","<role>You are a meticulous and highly critical linguistic editor tasked with evaluating translations.</role>
+<goal>Your goal is to ensure that every translation meets the highest standards of quality.<goal>
+<requirements>
+  <item>The translation must read naturally in the target language.</item>
+  <item>It must accurately convey the meaning of the source text.</item>
+  <item>Pay close attention to tone, style, any cultural nuances, and markedness of the source text.</item>
+</requirements>
+<output_format>
+  <item>The analysis tag contains the analysis of the source text in terms of its meaning, tone, style, and any particular challenges or nuances.</item>
+  <item>The evaluation of the translation attempt under the evaluation tag, identifying specific issues, errors, or awkward phrasings, along with multiple alternatives or suggestions for each.</item>
+  <item>The grade tag must contain 'fail' if you have any suggestions (even minor ones). Respond with 'pass' only if it requires no changes whatsoever and you have nothing to add.</item>
+</output_format>","<context>
+  <text_type>fictional text, novel excerpt</text_type>
+  <source_lang>English</source_lang>
+  <target_lang>Indonesian</target_lang>
+  <external_knowledge>
+    <item>Novel synopsis: The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.</item>
+    <item>'porte cochere' is not a commonly used term in Indonesian.</item>
+  </external_knowledge>
+</context>
+<source_text>It would be two bedrooms and a study, with a family room. There'd be a kitchen here, with the washroom right off of it."" I was looking down at the table, drawing with my finger. ""Around back, there'd be a *porte cochere* for the cars, so you could carry groceries right into the kitchen without getting wet. There's a deck off the right side of the kitchen, see? Or maybe I'd put it off the family room. That's where the fireplace will be, and you could keep your firewood on the deck. And you could put your gas grill on the deck. For steaks.""</source_text>
+<attempt>Akan ada dua kamar tidur dan ruang kerja, serta ruang keluarga. Dapur akan berada di sana, dengan kamar mandi tepat di sampingnya. Di bagian belakang, akan ada sebuah *area parkir tertutup* untuk mobil, sehingga Anda bisa membawa belanjaan langsung ke dapur tanpa terkena hujan. Ada teras di sisi kanan dapur, atau mungkin di sisi ruang keluarga. Di sana akan ada perapian, dan Anda bisa menyimpan kayu bakar di teras. Anda juga bisa meletakkan kompor gas di teras itu, untuk memanggang steak.</attempt>
+<task>Evaluate the content in the attempt tag based on the source text provided. Provide only the evaluation following the required output format.</task>"
+4,1,2,1012,0.01,827,0.01,"It would be two bedrooms and a study, with a family room. There'd be a kitchen here, with the washroom right off of it."" I was looking down at the table, drawing with my finger. ""Around back, there'd be a *porte cochere* for the cars, so you could carry groceries right into the kitchen without getting wet. There's a deck off the right side of the kitchen, see? Or maybe I'd put it off the family room. That's where the fireplace will be, and you could keep your firewood on the deck. And you could put your gas grill on the deck. For steaks.""","Akan ada dua kamar tidur dan ruang kerja, serta ruang keluarga. Dapur akan berada di sana, dengan kamar mandi tepat di sampingnya. Di bagian belakang, akan ada sebuah *area parkir tertutup* untuk mobil, agar Anda bisa membawa belanjaan langsung ke dapur tanpa basah. Ada teras di sisi kanan dapur, atau mungkin di sisi ruang keluarga. Di sana akan ada perapian, dan Anda bisa menyimpan kayu bakar di teras. Anda juga bisa meletakkan kompor gas di teras itu, untuk memanggang steak.",pass,"<retelling>Harper sedang menjelaskan denah rumah yang akan dibangun. Ada dua kamar tidur, ruang kerja, dan ruang keluarga. Dapur akan berada di sana, dengan kamar mandi tepat di sampingnya. Di bagian belakang, akan ada sebuah *area parkir tertutup* untuk mobil, sehingga Anda bisa membawa belanjaan langsung ke dapur tanpa basah. Ada teras di sisi kanan dapur, atau mungkin di sisi ruang keluarga. Di sana akan ada perapian, dan Anda bisa menyimpan kayu bakar di teras. Anda juga bisa meletakkan kompor gas di teras itu, untuk memanggang steak.</retelling>
+<translation>Akan ada dua kamar tidur dan ruang kerja, serta ruang keluarga. Dapur akan berada di sana, dengan kamar mandi tepat di sampingnya. Di bagian belakang, akan ada sebuah *area parkir tertutup* untuk mobil, agar Anda bisa membawa belanjaan langsung ke dapur tanpa basah. Ada teras di sisi kanan dapur, atau mungkin di sisi ruang keluarga. Di sana akan ada perapian, dan Anda bisa menyimpan kayu bakar di teras. Anda juga bisa meletakkan kompor gas di teras itu, untuk memanggang steak.</translation>","<analysis>The translation is a direct and accurate rendering of the source text. The use of ""*area parkir tertutup*"" for ""*porte cochere*"" is appropriate, given the external knowledge that the latter is not a common term in Indonesian. The sentence structure and vocabulary are natural and easy to understand. The tone remains consistent with the original, maintaining a casual and conversational style.</analysis>
+<evaluation>The translation is well-done and effectively conveys the meaning of the source text. The suggested changes in the previous iteration were unnecessary, as the current translation is already natural and accurate. The use of ""agar"" is a good choice to connect the cause and effect in the sentence about carrying groceries. The repetition of ""di teras itu"" is acceptable and doesn't detract from the overall quality of the translation. The overall tone is well-preserved.</evaluation>
+<grade>pass</grade>",Mon Nov 17 05:09:50 2025,"<role>You are a professional linguistic translator.</role>
+<goal>Your primary directive is to provide a fluent, accurate, and contextually appropriate translation.</goal>.
+<requirements>
+  <item>Pay attention to any markedness, whether syntactical or lexical, that should be considered in the translation.</item>
+  <item>Preserve the tone, style, and intent of the source text.</item>
+  <item>Ensure the translation reads naturally in the target language.</item>
+  <item>Adhere to the context provided, as it may contain important information that affects your translation choices.</item>
+</requirements>
+<output_format>
+  <item>First, paraphrase and retell the source text in your own words to demonstrate your understanding in the retelling tag.</item>
+  <item>Then, provide your translation of the source text.</item>
+</output_format>","<context>
+  <text_type>fictional text, novel excerpt</text_type>
+  <source_lang>English</source_lang>
+  <target_lang>Indonesian</target_lang>
+  <external_knowledge>
+    <item>Novel synopsis: The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.</item>
+    <item>'porte cochere' is not a commonly used term in Indonesian.</item>
+  </external_knowledge>
+</context>
+<source_text>It would be two bedrooms and a study, with a family room. There'd be a kitchen here, with the washroom right off of it."" I was looking down at the table, drawing with my finger. ""Around back, there'd be a *porte cochere* for the cars, so you could carry groceries right into the kitchen without getting wet. There's a deck off the right side of the kitchen, see? Or maybe I'd put it off the family room. That's where the fireplace will be, and you could keep your firewood on the deck. And you could put your gas grill on the deck. For steaks.""</source_text>
+<evaluation><analysis>The source text describes a house layout with a focus on convenience and comfort. Harper is detailing the features of a house she is describing, likely for a client or as part of her work. The tone is casual and conversational, reflecting Harper's personality and her relationship with Tolliver. The use of ""porte cochere"" is a detail that adds a touch of elegance and practicality. The description of the outdoor space emphasizes functionality and leisure.</analysis>
+<evaluation>The translation is generally good and accurately conveys the meaning of the source text. The substitution of ""*porte cochere*"" with ""*area parkir tertutup*"" is a sensible choice, as it avoids a potentially confusing or unfamiliar term for Indonesian readers. However, the phrasing ""sehingga Anda bisa membawa belanjaan langsung ke dapur tanpa terkena hujan"" is a bit clunky. A more natural phrasing would be ""agar Anda bisa membawa belanjaan langsung ke dapur tanpa basah."" Also, the repetition of ""di teras itu"" could be improved with a synonym or rephrasing. While the translation is understandable, it lacks a certain fluidity and naturalness. The overall tone is slightly formal compared to the original's casual tone. </evaluation>
+<grade>fail</grade></evaluation>
+<task>A translation attempt has been evaluated. Your task is to consider the editor's evaluation and then revise the translation accordingly. Follow the output format</task>","<role>You are a meticulous and highly critical linguistic editor tasked with evaluating translations.</role>
+<goal>Your goal is to ensure that every translation meets the highest standards of quality.<goal>
+<requirements>
+  <item>The translation must read naturally in the target language.</item>
+  <item>It must accurately convey the meaning of the source text.</item>
+  <item>Pay close attention to tone, style, any cultural nuances, and markedness of the source text.</item>
+</requirements>
+<output_format>
+  <item>The analysis tag contains the analysis of the source text in terms of its meaning, tone, style, and any particular challenges or nuances.</item>
+  <item>The evaluation of the translation attempt under the evaluation tag, identifying specific issues, errors, or awkward phrasings, along with multiple alternatives or suggestions for each.</item>
+  <item>The grade tag must contain 'fail' if you have any suggestions (even minor ones). Respond with 'pass' only if it requires no changes whatsoever and you have nothing to add.</item>
+</output_format>","<context>
+  <text_type>fictional text, novel excerpt</text_type>
+  <source_lang>English</source_lang>
+  <target_lang>Indonesian</target_lang>
+  <external_knowledge>
+    <item>Novel synopsis: The narrator, Harper Connelly, has what you might call a strange job: she finds dead people. She can sense the final location of a person who's passed, and share their very last moment. The way Harper sees it, she's providing a service to the dead while bringing some closure to the living - but she's used to most people treating her like a blood-sucking leech. Traveling with her step-brother Tolliver as manager and sometime-bodyguard, she's become an expert at getting in, getting paid, and getting out fast. Because for the living it's always urgent - even if the dead can wait forever.</item>
+    <item>'porte cochere' is not a commonly used term in Indonesian.</item>
+  </external_knowledge>
+</context>
+<source_text>It would be two bedrooms and a study, with a family room. There'd be a kitchen here, with the washroom right off of it."" I was looking down at the table, drawing with my finger. ""Around back, there'd be a *porte cochere* for the cars, so you could carry groceries right into the kitchen without getting wet. There's a deck off the right side of the kitchen, see? Or maybe I'd put it off the family room. That's where the fireplace will be, and you could keep your firewood on the deck. And you could put your gas grill on the deck. For steaks.""</source_text>
+<attempt>Akan ada dua kamar tidur dan ruang kerja, serta ruang keluarga. Dapur akan berada di sana, dengan kamar mandi tepat di sampingnya. Di bagian belakang, akan ada sebuah *area parkir tertutup* untuk mobil, agar Anda bisa membawa belanjaan langsung ke dapur tanpa basah. Ada teras di sisi kanan dapur, atau mungkin di sisi ruang keluarga. Di sana akan ada perapian, dan Anda bisa menyimpan kayu bakar di teras. Anda juga bisa meletakkan kompor gas di teras itu, untuk memanggang steak.</attempt>
+<task>Evaluate the content in the attempt tag based on the source text provided. Provide only the evaluation following the required output format.</task>"

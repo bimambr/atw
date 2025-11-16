@@ -36,8 +36,10 @@ from lib import (
     wait,
 )
 
-EVALUATOR_TEMP = 0.7
-OPTIMIZER_TEMP = 1.4
+# use greedy decoding to get the most deterministic output from the model, even on gpu
+# seeds do not matter when temp is close to 0, but are kept as they are still useful when running on cpu
+EVALUATOR_TEMP = 0.01
+OPTIMIZER_TEMP = 0.01
 OPTIMIZER_ALT_TEMP = 0.01
 EVALUATOR_SEED = 727
 SEEDS = [101, 202, 303, 404, 505, 606, 707, 808, 909, 1010]

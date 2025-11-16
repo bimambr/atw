@@ -10,7 +10,7 @@ This repository contains the scripts and methodology for a thesis project analys
 
 The workflow was inspired by LangChain's [evaluator-optimizer](https://docs.langchain.com/oss/python/langgraph/workflows-agents#evaluator-optimizer), with some twists being:
 
-1. Draft generation and refinement here are treated as separate nodes for a better visualisation, as they use different parameters.[^1] The former uses a higher temperature than the latter.
+1. Draft generation and refinement here are treated as separate nodes for a better visualisation.[^1]
 2. The interaction history may or may not be included via the `--preserve_history` flag. Doing so will generally help making the evaluator more consistent in each iteration.
 
 [^1]: Practically, the two nodes are handled by the same function in the code.
@@ -86,7 +86,7 @@ Open a terminal in the project's root directory and run the `llama-server`. This
 
 ```sh
 # Example command to run llama-server
-llama-server -m .\gemma-3n-E4B-it.gguf --port 8000 -c 32768 -fa on --cache-ram 0 --repeat-penalty 1.0 --min-p 0.01 --top-k 64 --top-p 0.95 --no-webui
+llama-server -m .\gemma-3n-E4B-it.gguf --port 8000 -c 32768 -fa on --cache-ram 0 --repeat-penalty 1.0 --min-p 0.01 --top-k 64 --top-p 0.95 --no-webui -ngl 99
 ```
 
 ##### Step 3: Run the Experiment Script
