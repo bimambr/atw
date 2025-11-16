@@ -191,7 +191,7 @@ class CLIArgs(argparse.Namespace):
     refinement_iterations: int
     cache_prompt: bool
     omit_roles: bool
-    preserve_history: bool
+    keep_n_messages: int
     save_output: bool
 
 
@@ -249,10 +249,11 @@ def get_parsed_args() -> type[CLIArgs]:
         help="Omit roles in system prompts",
     )
     parser.add_argument(
-        "--preserve-history",
-        action="store_true",
-        default=False,
-        help="Preserve the full interaction history when optimizing translations.",
+        "--preserve-last-n-messages",
+        type=int,
+        default=0,
+        help="Preserve last N messages of interaction history when optimizing translations (-1: all, 0: none).",
+        dest="keep_n_messages",
     )
     parser.add_argument(
         "--no-save",
@@ -271,7 +272,7 @@ def get_parsed_args() -> type[CLIArgs]:
     LOGGER.info("Timeout: %d seconds", parsed.timeout)
     LOGGER.info("Cache prompt: %s", parsed.cache_prompt)
     LOGGER.info("Omit roles: %s", parsed.omit_roles)
-    LOGGER.info("Preserve history: %s", parsed.preserve_history)
+    LOGGER.info("Preserve last N messages: %d", parsed.keep_n_messages)
     LOGGER.info("Save output: %s", parsed.save_output)
 
     return parsed

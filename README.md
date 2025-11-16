@@ -94,7 +94,7 @@ llama-server -m .\gemma-3n-E4B-it.gguf --port 8000 -c 32768 -fa on --cache-ram 0
 Open a second terminal in the project's root directory. Run the `evaluator_optimizer.py` script, pointing it to your input corpus.
 
 ```sh
-python evaluator_optimizer.py --input "corpus/literature.json" --timeout 0 --iterations 1 --refinement-iterations 3
+python evaluator_optimizer.py --input "corpus/literature.json" --timeout 0 --iterations 1 --refinement-iterations 3 --preserve-last-n-messages 2
 ```
 
 ## Output

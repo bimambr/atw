@@ -184,7 +184,7 @@ def get_last_evaluation(state: State) -> TranslationEvaluation | None:
 
 
 def fill_in_messages(state: State, messages: list[tuple[str, str, str]]) -> None:
-    if not ARGS.preserve_history:
+    if ARGS.keep_n_messages == 0:
         return
 
     roles: dict[str, str] = {
@@ -192,7 +192,14 @@ def fill_in_messages(state: State, messages: list[tuple[str, str, str]]) -> None
         "evaluation": "editor",
     }
 
-    for entry in state["history"]:
+    history = state["history"]
+
+    if ARGS.keep_n_messages > 0:
+        history = history[-ARGS.keep_n_messages - 1 :]
+
+    LOGGER.info("Filling in %d messages from history.", len(history))
+
+    for entry in history:
         assert "type" in entry
         assert "prompt" in entry
         assert "system_prompt" in entry
