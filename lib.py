@@ -20,7 +20,7 @@ import json
 import logging
 import re
 from pathlib import Path
-from typing import Awaitable, TypeVar, cast
+from typing import Awaitable, TypedDict, TypeVar, cast
 
 import aiohttp
 
@@ -40,6 +40,16 @@ DEFAULT_REFINEMENT_ITERATIONS = 3
 MAX_REFINEMENT_ITERATIONS = 5
 # provide up to MAX_N_ITERATIONS iterations worth of seeds
 TIMEOUT = 240
+
+
+class Payload(TypedDict, total=False):
+    model: str
+    stream: bool
+    temperature: float
+    seed: int
+    messages: list[dict[str, str]]
+    cache_prompt: bool
+    grammar: str
 
 
 async def stream_response(response: aiohttp.ClientResponse) -> str:
@@ -93,7 +103,8 @@ async def run_inference(
             ]
             if not formatted_messages:
                 raise ValueError("Messages must be provided for inference.")
-            payload = {
+
+            payload: Payload = {
                 "model": model,
                 "stream": True,
                 "temperature": temperature,
@@ -182,7 +193,6 @@ class CLIArgs(argparse.Namespace):
     simple_evaluator: bool
     cache_prompt: bool
     omit_roles: bool
-    evaluate_once: bool
     preserve_history: bool
 
 

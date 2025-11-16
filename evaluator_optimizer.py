@@ -302,6 +302,7 @@ External knowledge: {nl.join([f"    - {i}" for i in state["source_text"].get("ex
 
 async def handle_optimization_state(state: State) -> None:
     state["attempt"] += 1
+    state["next_state"] = "evaluation"
 
     is_draft = state["attempt"] == 1
 
@@ -326,7 +327,6 @@ async def handle_optimization_state(state: State) -> None:
             SOURCE_TEXT=state["source_text"]["text"],
             CONTEXT=context,
         )
-        state["next_state"] = "evaluation"
     else:
         # walk backwards to find the last attempt with feedback
         last_feedback = get_last_feedback(state)
@@ -349,7 +349,6 @@ async def handle_optimization_state(state: State) -> None:
             FEEDBACK=last_feedback.get("feedback", "Not available."),
             CONTEXT=context,
         )
-        state["next_state"] = "verification" if ARGS.evaluate_once else "evaluation"
 
     temp = OPTIMIZER_TEMP if is_draft else OPTIMIZER_ALT_TEMP
     seed = state["optimizer_seed"] * 10 + state["attempt"]
