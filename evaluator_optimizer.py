@@ -21,8 +21,9 @@ import logging
 import re
 import signal
 import time
+from io import TextIOWrapper
 from pathlib import Path
-from typing import Literal, TypedDict
+from typing import Any, Iterable, Literal, Protocol, TypedDict
 
 import aiohttp
 
@@ -273,7 +274,13 @@ class State(TypedDict):
     optimizer_seed: int
     evaluator_seed: int
     client: aiohttp.ClientSession
-    csv_writer: csv.writer
+    csv_writer: "CSVWriter"
+
+
+class CSVWriter(Protocol):
+    def writerow(self, row: Iterable[Any]) -> Any: ...
+
+    def writerows(self, rows: Iterable[Iterable[Any]]) -> None: ...
 
 
 def get_last_feedback(state: State) -> TranslationFeedback | None:
@@ -287,16 +294,24 @@ def fill_in_messages(state: State, messages: list[tuple[str, str, str]]) -> None
     if not ARGS.preserve_history:
         return
 
+    getter = {
+        "attempt": lambda e: (e["translation"], "optimizer"),
+        "feedback": lambda e: (e["feedback"], "evaluator"),
+        "verification": lambda e: (e["result"], "evaluator"),
+    }
+
     for entry in state["history"]:
-        if entry["type"] == "attempt":
-            messages.append(("user", entry["prompt"], "user"))
-            messages.append(("assistant", entry["translation"], "optimizer"))
-        elif entry["type"] == "feedback":
-            messages.append(("user", entry["prompt"], "user"))
-            messages.append(("assistant", entry["feedback"], "evaluator"))
-        elif entry["type"] == "verification":
-            messages.append(("user", entry["prompt"], "user"))
-            messages.append(("assistant", entry["result"], "evaluator"))
+        messages.append(("user", entry["prompt"], "user"))
+        messages.append(("assistant",) + getter[entry["type"]](entry))
+
+
+def build_messages(
+    state: State, system_prompt: str, user_prompt: str
+) -> list[tuple[str, str, str]]:
+    messages = [("system", system_prompt, "system")]
+    fill_in_messages(state, messages)
+    messages.append(("user", user_prompt, "user"))
+    return messages
 
 
 def format_context(state: State) -> str:
@@ -306,7 +321,7 @@ Text type: {state["source_text"]["type"]}
 Source Language: {state["source_text"]["source_lang"]}
 Target Language: {state["source_text"]["target_lang"]}
 External knowledge: {nl.join([f"    - {i}" for i in state["source_text"].get("external_knowledge", [])])}
-            """
+            """.strip()
 
 
 async def handle_optimization_state(state: State) -> None:
@@ -362,9 +377,7 @@ async def handle_optimization_state(state: State) -> None:
 
     temp = OPTIMIZER_TEMP if is_draft else OPTIMIZER_ALT_TEMP
     seed = state["optimizer_seed"] * 10 + state["attempt"]
-    messages = [("system", system_prompt, "system")]
-    fill_in_messages(state, messages)
-    messages.append(("user", prompt, "user"))
+    messages = build_messages(state, system_prompt, prompt)
     translation = await run_inference(
         state["client"],
         ARGS.endpoint,
@@ -421,9 +434,7 @@ async def handle_evaluation_state(state: State) -> None:
         TRANSLATION_ATTEMPT=last_attempt["translation"],
         CONTEXT=format_context(state),
     )
-    messages = [("system", system_prompt, "system")]
-    fill_in_messages(state, messages)
-    messages.append(("user", prompt, "user"))
+    messages = build_messages(state, system_prompt, prompt)
     free_form_output = await run_inference(
         state["client"],
         ARGS.endpoint,
@@ -555,9 +566,7 @@ async def handle_verification_state(state: State) -> None:
         ORIGINAL_FEEDBACK=last_feedback["feedback"],
         NEW_TRANSLATION_ATTEMPT=last_attempt["translation"],
     )
-    messages = [("system", VERIFIER_SYSTEM_PROMPT, "system")]
-    fill_in_messages(state, messages)
-    messages.append(("user", verification_prompt, "user"))
+    messages = build_messages(state, VERIFIER_SYSTEM_PROMPT, verification_prompt)
     verification_output = await run_inference(
         state["client"],
         ARGS.endpoint,
@@ -610,6 +619,138 @@ async def handle_verification_state(state: State) -> None:
     state["optimizer_seed"] += 1
 
 
+class FileProcessor:
+    CSV_HEADER: tuple[str, ...] = (
+        "text_id",
+        "iteration_id",
+        "attempt",
+        "optimizer_seed",
+        "optimizer_temp",
+        "evaluator_seed",
+        "evaluator_temp",
+        "source_text",
+        "translation_attempt",
+        "evaluator_type",
+        "rubric",
+        "grade",
+        "feedback",
+        "timestamp",
+        "optimizer_system_prompt",
+        "optimizer_user_prompt",
+        "evaluator_system_prompt",
+        "evaluator_user_prompt",
+    )
+
+    STATE_HANDLERS = {
+        "optimization": handle_optimization_state,
+        "evaluation": handle_evaluation_state,
+        "verification": handle_verification_state,
+    }
+
+    def __init__(
+        self,
+        id: int,
+        input_file: Path,
+        output_file: Path,
+        client: aiohttp.ClientSession,
+    ) -> None:
+        self.id = id
+        self.input_file = input_file
+        self.output_file = output_file
+
+        self.csv_file: TextIOWrapper | None = None
+        self.csv_writer: CSVWriter | None = None
+        self.log_file: TextIOWrapper | None = None
+
+        self.client = client
+
+    def open(self) -> tuple[TextIOWrapper, CSVWriter]:
+        if self.csv_file is None or self.csv_writer is None:
+            self.output_file.parent.mkdir(parents=True, exist_ok=True)
+            self.csv_file = open(self.output_file, "w", newline="", encoding="utf-8")
+            self.log_file = open(
+                self.output_file.with_suffix(".jsonl"), "w", encoding="utf-8"
+            )
+            self.csv_writer = csv.writer(self.csv_file)
+            self.csv_writer.writerow(self.CSV_HEADER)
+
+        return self.csv_file, self.csv_writer
+
+    def __del__(self) -> None:
+        if self.csv_file:
+            self.csv_file.close()
+            self.csv_file = None
+        if self.log_file:
+            self.log_file.close()
+            self.log_file = None
+        self.csv_writer = None
+
+    async def process(self) -> None:
+        if not self.input_file.exists():
+            LOGGER.error("Input file '%s' does not exist.", self.input_file)
+            return
+
+        LOGGER.info("Processing input file: %s", self.input_file)
+        LOGGER.info("Output will be saved to: %s", self.output_file)
+
+        self.open()
+
+        input_json = json.loads(self.input_file.read_text("utf-8").strip())
+
+        for text_idx, text in enumerate(input_json["texts"]):
+            LOGGER.info(
+                "--- Translating text %d out of %d ---",
+                text_idx + 1,
+                len(input_json["texts"]),
+            )
+
+            source_text: SourceTextEntry = {
+                "source_lang": input_json["source_lang"],
+                "target_lang": input_json["target_lang"],
+                "text": text["content"],
+                "type": input_json.get("type", "general"),
+                "id": text_idx + 1,
+                "external_knowledge": input_json.get("external_knowledge", [])
+                + text.get("external_knowledge", []),
+            }
+
+            await self._process_text(source_text)
+
+    async def _process_text(self, source_text: SourceTextEntry) -> None:
+        for i in range(ARGS.iterations):
+            iteration_num = i + 1
+            LOGGER.info(
+                "=== Iteration %d out of %d ===",
+                iteration_num,
+                ARGS.iterations,
+            )
+
+            state = State(
+                iteration_id=iteration_num,
+                source_text=source_text,
+                next_state="optimization",
+                max_attempt=ARGS.refinement_iterations,
+                attempt=0,
+                history=[],
+                optimizer_seed=SEEDS[i],
+                evaluator_seed=EVALUATOR_SEED,
+                client=self.client,
+                csv_writer=self.csv_writer,
+            )
+
+            while handler := self.STATE_HANDLERS.get(state["next_state"]):
+                await handler(state)
+                self.csv_file.flush()
+
+                # let llama-server disconnect the previous connection
+                await asyncio.sleep(0.1)
+
+            self.log_file.write(
+                json.dumps(state["history"], ensure_ascii=False, indent=4) + "\n"
+            )
+            self.log_file.flush()
+
+
 async def main():
     LOGGER.info("Starting translation experiment...")
     input_files = [Path(p) for p in ARGS.input.split(",")]
@@ -635,106 +776,22 @@ async def main():
     event = asyncio.Event()
     signal.signal(signal.SIGINT, lambda *_args: signal_handler(event))
 
-    state_handlers = {
-        "optimization": handle_optimization_state,
-        "evaluation": handle_evaluation_state,
-        "verification": handle_verification_state,
-    }
-
     async with aiohttp.ClientSession() as client:
         for file_idx, (input_file, output_file) in enumerate(
             zip(input_files, output_files)
         ):
-            if not input_file.exists():
-                LOGGER.error("Input file '%s' does not exist.", input_file)
-                continue
-
-            LOGGER.info(
-                "--- Processing file %d out of %d ---", file_idx + 1, len(input_files)
-            )
-            LOGGER.info("Processing input file: %s", input_file)
-            LOGGER.info("Output will be saved to: %s", output_file)
             try:
-                output_file.parent.mkdir(parents=True, exist_ok=True)
-                with output_file.open("w", newline="", encoding="utf-8") as csvfile:
-                    csv_writer = csv.writer(csvfile)
-                    csv_writer.writerow(
-                        [
-                            "text_id",
-                            "iteration_id",
-                            "attempt",
-                            "optimizer_seed",
-                            "optimizer_temp",
-                            "evaluator_seed",
-                            "evaluator_temp",
-                            "source_text",
-                            "translation_attempt",
-                            "evaluator_type",
-                            "rubric",
-                            "grade",
-                            "feedback",
-                            "timestamp",
-                            "optimizer_system_prompt",
-                            "optimizer_user_prompt",
-                            "evaluator_system_prompt",
-                            "evaluator_user_prompt",
-                        ]
-                    )
+                processor = FileProcessor(
+                    id=file_idx,
+                    input_file=input_file,
+                    output_file=output_file,
+                    client=client,
+                )
 
-                    input_json = json.loads(input_file.read_text("utf-8").strip())
-
-                    for text_idx, text in enumerate(input_json["texts"]):
-                        LOGGER.info(
-                            "--- Translating text %d out of %d ---",
-                            text_idx + 1,
-                            len(input_json["texts"]),
-                        )
-                        source_text: SourceTextEntry = {
-                            "source_lang": input_json["source_lang"],
-                            "target_lang": input_json["target_lang"],
-                            "text": text["content"],
-                            "type": input_json.get("type", "general"),
-                            "id": text_idx + 1,
-                            "external_knowledge": input_json.get(
-                                "external_knowledge", []
-                            )
-                            + text.get("external_knowledge", []),
-                        }
-
-                        for i in range(ARGS.iterations):
-                            iteration_num = i + 1
-                            LOGGER.info(
-                                "=== Iteration %d out of %d ===",
-                                iteration_num,
-                                ARGS.iterations,
-                            )
-
-                            state = State(
-                                iteration_id=iteration_num,
-                                source_text=source_text,
-                                next_state="optimization",
-                                max_attempt=ARGS.refinement_iterations,
-                                attempt=0,
-                                history=[],
-                                optimizer_seed=SEEDS[i],
-                                evaluator_seed=EVALUATOR_SEED,
-                                client=client,
-                                csv_writer=csv_writer,
-                            )
-
-                            while handler := state_handlers.get(state["next_state"]):
-                                await wait(handler(state), event)
-                                csvfile.flush()
-
-                            with open(
-                                output_file.with_suffix(".jsonl"), "a", encoding="utf-8"
-                            ) as jsonl_file:
-                                jsonl_file.write(
-                                    json.dumps(
-                                        state["history"], ensure_ascii=False, indent=4
-                                    )
-                                )
-                                jsonl_file.write("\n")
+                await wait(
+                    processor.process(),
+                    event,
+                )
 
             except IOError as e:
                 LOGGER.error(
