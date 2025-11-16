@@ -23,7 +23,7 @@ import signal
 import time
 from io import TextIOWrapper
 from pathlib import Path
-from typing import Any, Iterable, Literal, Protocol, TypedDict
+from typing import Any, Callable, Iterable, Literal, Protocol, TypedDict
 
 import aiohttp
 
@@ -199,14 +199,14 @@ LOGGER = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-class Rubric(TypedDict):
+class Rubric(TypedDict, total=False):
     semantic_accuracy: bool
     tonal_fidelity: bool
     natural_fluency: bool
     nuance_preservation: bool
 
 
-class TranslationAttempt(TypedDict):
+class TranslationAttempt(TypedDict, total=False):
     type: Literal["attempt"]
     translation: str
     prompt: str
@@ -215,20 +215,11 @@ class TranslationAttempt(TypedDict):
     temp: float
 
 
-class TranslationFeedback(TypedDict):
+class TranslationFeedback(TypedDict, total=False):
     type: Literal["feedback"]
     rubric: Rubric
     grade: str
     feedback: str
-    prompt: str
-    system_prompt: str
-    seed: int
-    temp: float
-
-
-class TranslationVerification(TypedDict):
-    type: Literal["verification"]
-    result: str
     prompt: str
     system_prompt: str
     seed: int
@@ -250,7 +241,7 @@ class State(TypedDict):
     next_state: str
     max_attempt: int
     attempt: int
-    history: list[TranslationAttempt]
+    history: list[TranslationAttempt | TranslationFeedback]
     optimizer_seed: int
     evaluator_seed: int
     client: aiohttp.ClientSession
@@ -265,6 +256,7 @@ class CSVWriter(Protocol):
 
 def get_last_feedback(state: State) -> TranslationFeedback | None:
     for entry in state["history"][::-1]:
+        assert "type" in entry
         if entry["type"] == "feedback":
             return entry  # type: ignore
     return None
@@ -274,13 +266,17 @@ def fill_in_messages(state: State, messages: list[tuple[str, str, str]]) -> None
     if not ARGS.preserve_history:
         return
 
-    getter = {
-        "attempt": lambda e: (e["translation"], "optimizer"),
-        "feedback": lambda e: (e["feedback"], "evaluator"),
-        "verification": lambda e: (e["result"], "evaluator"),
+    getter: dict[
+        str, Callable[[TranslationAttempt | TranslationFeedback], tuple[str, str]]
+    ] = {
+        "attempt": lambda e: (e.get("translation", ""), "optimizer"),
+        "feedback": lambda e: (e.get("feedback", ""), "evaluator"),
     }
 
     for entry in state["history"]:
+        assert "type" in entry
+        assert "prompt" in entry
+
         messages.append(("user", entry["prompt"], "user"))
         messages.append(("assistant",) + getter[entry["type"]](entry))
 
@@ -350,7 +346,7 @@ async def handle_optimization_state(state: State) -> None:
 
         prompt = OPTIMIZER_RETRY_PROMPT.format(
             SOURCE_TEXT=state["source_text"]["text"],
-            FEEDBACK=last_feedback["feedback"],
+            FEEDBACK=last_feedback.get("feedback", "Not available."),
             CONTEXT=context,
         )
         state["next_state"] = "verification" if ARGS.evaluate_once else "evaluation"
@@ -370,7 +366,7 @@ async def handle_optimization_state(state: State) -> None:
     )
 
     if ARGS.simulate_thinking:
-        match = re.search("--- FINAL TRANSLATION ---\s*:?", translation, re.IGNORECASE)
+        match = re.search(r"--- FINAL TRANSLATION ---\s*:?", translation, re.IGNORECASE)
         if not match:
             LOGGER.error(
                 "Could not find final translation section in output: %s", translation
@@ -403,7 +399,7 @@ async def handle_evaluation_state(state: State) -> None:
     # do not mutate the original evaluator seed
     seed = state["evaluator_seed"] + state["iteration_id"] * 100
     last_attempt = state["history"][-1]
-    assert last_attempt["type"] == "attempt"
+    assert last_attempt.get("type") == "attempt"
     system_prompt = (
         EVALUATOR_SIMPLE_SYSTEM_PROMPT
         if ARGS.simple_evaluator
@@ -411,7 +407,7 @@ async def handle_evaluation_state(state: State) -> None:
     )
     prompt = EVALUATOR_USER_PROMPT.format(
         SOURCE_TEXT=state["source_text"]["text"],
-        TRANSLATION_ATTEMPT=last_attempt["translation"],
+        TRANSLATION_ATTEMPT=last_attempt.get("translation", "Not available."),
         CONTEXT=format_context(state),
     )
     messages = build_messages(state, system_prompt, prompt)
@@ -432,6 +428,8 @@ async def handle_evaluation_state(state: State) -> None:
         "system_prompt": system_prompt,
         "seed": seed,
         "temp": EVALUATOR_TEMP,
+        "grade": "",
+        "feedback": "",
     }
     state["history"].append(feedback)
 
@@ -464,8 +462,8 @@ async def handle_evaluation_state(state: State) -> None:
             grammar=EVALUATOR_JSON_GRAMMAR,
             cache_prompt=ARGS.cache_prompt,
             messages=[
-                ("system", JSON_FORMATTER_SYSTEM_PROMPT),
-                ("user", json_formatter_prompt),
+                ("system", JSON_FORMATTER_SYSTEM_PROMPT, "system"),
+                ("user", json_formatter_prompt, "user"),
             ],
         )
 
@@ -490,19 +488,20 @@ async def handle_evaluation_state(state: State) -> None:
             state["source_text"]["id"],
             state["iteration_id"],
             state["attempt"],
-            last_attempt["seed"],
-            last_attempt["temp"],
+            last_attempt.get("seed", -1),
+            last_attempt.get("temp", -1),
             seed,
             EVALUATOR_TEMP,
             state["source_text"]["text"],
-            last_attempt["translation"],
+            last_attempt.get("translation", "Not available."),
             "evaluator",
-            "\n".join(f"{k}: {v}" for k, v in feedback["rubric"].items()) or "N/A",
-            feedback["grade"],
-            feedback["feedback"],
+            "\n".join(f"{k}: {v}" for k, v in feedback.get("rubric", {}).items())
+            or "N/A",
+            feedback.get("grade", "N/A"),
+            feedback.get("feedback", "Not available."),
             time.ctime(),
-            last_attempt["system_prompt"],
-            last_attempt["prompt"],
+            last_attempt.get("system_prompt", "Not available."),
+            last_attempt.get("prompt", "Not available."),
             system_prompt,
             prompt,
         )
@@ -618,6 +617,10 @@ class FileProcessor:
                 ARGS.iterations,
             )
 
+            assert self.csv_file is not None
+            assert self.csv_writer is not None
+            assert self.log_file is not None
+
             state = State(
                 iteration_id=iteration_num,
                 source_text=source_text,
@@ -658,7 +661,7 @@ async def main():
     ]
 
     event = asyncio.Event()
-    signal.signal(signal.SIGINT, lambda *_args: signal_handler(event))
+    signal.signal(signal.SIGINT, lambda *_args: signal_handler(event))  # type: ignore
 
     async with aiohttp.ClientSession() as client:
         for file_idx, (input_file, output_file) in enumerate(

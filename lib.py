@@ -45,6 +45,8 @@ TIMEOUT = 240
 async def stream_response(response: aiohttp.ClientResponse) -> str:
     json_data = ""
     full_response = ""
+    chunk = ""
+
     LOGGER.info("Streaming response...")
     async for line in response.content:
         decoded_line = line.decode("utf-8").strip()
@@ -76,7 +78,7 @@ async def run_inference(
     model: str,
     temperature: float,
     seed: int,
-    timeout: int,
+    timeout: float,
     grammar: str | None = None,
     cache_prompt: bool = False,
     messages: list[tuple[str, str, str]] | None = None,
@@ -103,7 +105,9 @@ async def run_inference(
             if grammar is not None:
                 payload["grammar"] = grammar
 
-            async with client.post(endpoint, json=payload, timeout=timeout) as response:
+            async with client.post(
+                endpoint, json=payload, timeout=aiohttp.ClientTimeout(total=timeout)
+            ) as response:
                 response.raise_for_status()
                 return await stream_response(response)
         except (aiohttp.ServerDisconnectedError, aiohttp.ClientOSError) as e:
@@ -182,7 +186,7 @@ class CLIArgs(argparse.Namespace):
     preserve_history: bool
 
 
-def get_parsed_args() -> CLIArgs:
+def get_parsed_args() -> type[CLIArgs]:
     parser = argparse.ArgumentParser(description="llama.cpp Translation Experiment")
     parser.add_argument(
         "--endpoint",
