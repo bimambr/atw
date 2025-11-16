@@ -82,34 +82,40 @@ async def run_inference(
     messages: list[tuple[str, str, str]] | None = None,
 ) -> str:
     LOGGER.info("Hitting %s with temp=%f, seed=%d", endpoint, temperature, seed)
-    try:
-        formatted_messages = [
-            {"role": role, "content": content, "name": name}
-            for role, content, name in messages or []
-        ]
-        if not formatted_messages:
-            raise ValueError("Messages must be provided for inference.")
-        payload = {
-            "model": model,
-            "stream": True,
-            "temperature": temperature,
-            "seed": seed,
-            "messages": formatted_messages,
-            "cache_prompt": cache_prompt,
-        }
+    for i in range(3):
+        LOGGER.debug("Trying attempt %d...", i + 1)
+        try:
+            formatted_messages = [
+                {"role": role, "content": content, "name": name}
+                for role, content, name in messages or []
+            ]
+            if not formatted_messages:
+                raise ValueError("Messages must be provided for inference.")
+            payload = {
+                "model": model,
+                "stream": True,
+                "temperature": temperature,
+                "seed": seed,
+                "messages": formatted_messages,
+                "cache_prompt": cache_prompt,
+            }
 
-        if grammar is not None:
-            payload["grammar"] = grammar
+            if grammar is not None:
+                payload["grammar"] = grammar
 
-        async with client.post(endpoint, json=payload, timeout=timeout) as response:
-            response.raise_for_status()
-            return await stream_response(response)
-    except aiohttp.ClientError as e:
-        LOGGER.error("API request failed: %s", e, exc_info=e)
-        return "API request failed"
-    except json.JSONDecodeError:
-        LOGGER.error("Failed to decode JSON from response.")
-        return "Failed to decode JSON from response."
+            async with client.post(endpoint, json=payload, timeout=timeout) as response:
+                response.raise_for_status()
+                return await stream_response(response)
+        except (aiohttp.ServerDisconnectedError, aiohttp.ClientOSError) as e:
+            LOGGER.error("API request failed: %s", e, exc_info=e)
+            LOGGER.info("Retrying in 1 second...")
+            await asyncio.sleep(1)
+            continue
+        except json.JSONDecodeError:
+            LOGGER.error("Failed to decode JSON from response.")
+            return "Failed to decode JSON from response."
+
+    return "API request failed"
 
 
 async def wait(awaitable: Awaitable[T], event: asyncio.Event) -> T:
