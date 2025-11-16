@@ -23,6 +23,7 @@ import signal
 import time
 from io import TextIOWrapper
 from pathlib import Path
+from types import TracebackType
 from typing import Any, Iterable, Literal, Protocol, TypedDict
 
 import aiohttp
@@ -462,7 +463,15 @@ class FileProcessor:
                 self.output_file.with_suffix(".jsonl"), "w", encoding="utf-8"
             )
 
-    def __del__(self) -> None:
+    async def __aenter__(self) -> "FileProcessor":
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: type | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         if self.csv_file:
             self.csv_file.close()
             self.csv_file = None
@@ -558,17 +567,16 @@ async def main():
             zip(input_files, output_files)
         ):
             try:
-                processor = FileProcessor(
+                async with FileProcessor(
                     id=file_idx,
                     input_file=input_file,
                     output_file=output_file,
                     client=client,
-                )
-
-                await wait(
-                    processor.process(),
-                    event,
-                )
+                ) as processor:
+                    await wait(
+                        processor.process(),
+                        event,
+                    )
 
             except IOError as e:
                 LOGGER.error(
