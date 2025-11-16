@@ -41,6 +41,10 @@ OPTIMIZER_TEMP = 1.4
 OPTIMIZER_ALT_TEMP = 0.01
 EVALUATOR_SEED = 727
 SEEDS = [101, 202, 303, 404, 505, 606, 707, 808, 909, 1010]
+
+
+LOGGER = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 ARGS = get_parsed_args()
 
 
@@ -249,7 +253,7 @@ class State(TypedDict):
     optimizer_seed: int
     evaluator_seed: int
     client: aiohttp.ClientSession
-    csv_writer: "CSVWriter"
+    csv_writer: "CSVWriter | None"
 
 
 class CSVWriter(Protocol):
@@ -486,29 +490,30 @@ async def handle_evaluation_state(state: State) -> None:
             feedback["grade"] = "N/A"
             feedback["feedback"] = "Failed to parse evaluator output."
 
-    state["csv_writer"].writerow(
-        (
-            state["source_text"]["id"],
-            state["iteration_id"],
-            state["attempt"],
-            last_attempt.get("seed", -1),
-            last_attempt.get("temp", -1),
-            seed,
-            EVALUATOR_TEMP,
-            state["source_text"]["text"],
-            last_attempt.get("translation", "Not available."),
-            "evaluator",
-            "\n".join(f"{k}: {v}" for k, v in feedback.get("rubric", {}).items())
-            or "N/A",
-            feedback.get("grade", "N/A"),
-            feedback.get("feedback", "Not available."),
-            time.ctime(),
-            last_attempt.get("system_prompt", "Not available."),
-            last_attempt.get("prompt", "Not available."),
-            system_prompt,
-            prompt,
+    if csv_writer := state.get("csv_writer"):
+        csv_writer.writerow(
+            (
+                state["source_text"]["id"],
+                state["iteration_id"],
+                state["attempt"],
+                last_attempt.get("seed", -1),
+                last_attempt.get("temp", -1),
+                seed,
+                EVALUATOR_TEMP,
+                state["source_text"]["text"],
+                last_attempt.get("translation", "Not available."),
+                "evaluator",
+                "\n".join(f"{k}: {v}" for k, v in feedback.get("rubric", {}).items())
+                or "N/A",
+                feedback.get("grade", "N/A"),
+                feedback.get("feedback", "Not available."),
+                time.ctime(),
+                last_attempt.get("system_prompt", "Not available."),
+                last_attempt.get("prompt", "Not available."),
+                system_prompt,
+                prompt,
+            )
         )
-    )
 
     state["next_state"] = "optimization"
     if "pass" in feedback["grade"] or state["attempt"] >= state["max_attempt"]:
@@ -559,17 +564,22 @@ class FileProcessor:
 
         self.client = client
 
-    def open(self) -> tuple[TextIOWrapper, CSVWriter]:
-        if self.csv_file is None or self.csv_writer is None:
-            self.output_file.parent.mkdir(parents=True, exist_ok=True)
+    def open(self) -> None:
+        if not ARGS.save_output:
+            return
+
+        self.output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.csv_file:
             self.csv_file = open(self.output_file, "w", newline="", encoding="utf-8")
+            self.csv_writer = csv.writer(self.csv_file)
+            self.csv_writer.writerow(self.CSV_HEADER)
+            LOGGER.info("Output will be saved to: %s", self.output_file)
+
+        if not self.log_file:
             self.log_file = open(
                 self.output_file.with_suffix(".jsonl"), "w", encoding="utf-8"
             )
-            self.csv_writer = csv.writer(self.csv_file)
-            self.csv_writer.writerow(self.CSV_HEADER)
-
-        return self.csv_file, self.csv_writer
 
     def __del__(self) -> None:
         if self.csv_file:
@@ -586,7 +596,6 @@ class FileProcessor:
             return
 
         LOGGER.info("Processing input file: %s", self.input_file)
-        LOGGER.info("Output will be saved to: %s", self.output_file)
 
         self.open()
 
@@ -620,10 +629,6 @@ class FileProcessor:
                 ARGS.iterations,
             )
 
-            assert self.csv_file is not None
-            assert self.csv_writer is not None
-            assert self.log_file is not None
-
             state = State(
                 iteration_id=iteration_num,
                 source_text=source_text,
@@ -639,15 +644,16 @@ class FileProcessor:
 
             while handler := self.STATE_HANDLERS.get(state["next_state"]):
                 await handler(state)
-                self.csv_file.flush()
+                _ = self.csv_file and self.csv_file.flush()
 
                 # let llama-server disconnect the previous connection
                 await asyncio.sleep(0.1)
 
-            self.log_file.write(
-                json.dumps(state["history"], ensure_ascii=False, indent=4) + "\n"
-            )
-            self.log_file.flush()
+            if self.log_file:
+                self.log_file.write(
+                    json.dumps(state["history"], ensure_ascii=False, indent=4) + "\n"
+                )
+                self.log_file.flush()
 
 
 async def main():

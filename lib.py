@@ -194,6 +194,7 @@ class CLIArgs(argparse.Namespace):
     cache_prompt: bool
     omit_roles: bool
     preserve_history: bool
+    save_output: bool
 
 
 def get_parsed_args() -> type[CLIArgs]:
@@ -261,6 +262,13 @@ def get_parsed_args() -> type[CLIArgs]:
         default=False,
         help="Preserve the full interaction history when optimizing translations.",
     )
+    parser.add_argument(
+        "--no-save",
+        action="store_false",
+        default=True,
+        help="Do not save the output to a file.",
+        dest="save_output",
+    )
     parsed = parser.parse_args(namespace=CLIArgs)
 
     LOGGER.info("Using endpoint: %s", parsed.endpoint)
@@ -274,5 +282,6 @@ def get_parsed_args() -> type[CLIArgs]:
     LOGGER.info("Cache prompt: %s", parsed.cache_prompt)
     LOGGER.info("Omit roles: %s", parsed.omit_roles)
     LOGGER.info("Preserve history: %s", parsed.preserve_history)
+    LOGGER.info("Save output: %s", parsed.save_output)
 
     return parsed
