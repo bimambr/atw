@@ -189,8 +189,6 @@ class CLIArgs(argparse.Namespace):
     input: str
     timeout: int
     refinement_iterations: int
-    simulate_thinking: bool
-    simple_evaluator: bool
     cache_prompt: bool
     omit_roles: bool
     preserve_history: bool
@@ -239,12 +237,6 @@ def get_parsed_args() -> type[CLIArgs]:
         help="Simulate 'thinking' time by asking the model to analyse the text before attempting translation",
     )
     parser.add_argument(
-        "--simple-evaluator",
-        action="store_true",
-        default=False,
-        help="Use a simpler evaluation prompt",
-    )
-    parser.add_argument(
         "--cache-prompt",
         action="store_true",
         default=False,
@@ -277,8 +269,6 @@ def get_parsed_args() -> type[CLIArgs]:
     LOGGER.info("Refinement iterations: %d", parsed.refinement_iterations)
     LOGGER.info("Input files: %s", parsed.input)
     LOGGER.info("Timeout: %d seconds", parsed.timeout)
-    LOGGER.info("Simulate thinking: %s", parsed.simulate_thinking)
-    LOGGER.info("Simple evaluator: %s", parsed.simple_evaluator)
     LOGGER.info("Cache prompt: %s", parsed.cache_prompt)
     LOGGER.info("Omit roles: %s", parsed.omit_roles)
     LOGGER.info("Preserve history: %s", parsed.preserve_history)

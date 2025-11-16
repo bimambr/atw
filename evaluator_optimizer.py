@@ -49,161 +49,83 @@ ARGS = get_parsed_args()
 
 
 OPTIMIZER_SYSTEM_PROMPT = f"""{
-    "You are a professional linguistic translator. " * (not ARGS.omit_roles)
-}Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from {{SOURCE_LANG}} to {{TARGET_LANG}}.
-
---- REQUIREMENTS START ---
-1. Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in {{TARGET_LANG}} to best convey the original meaning.
-2. Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
-3. The final translation must read naturally in the {{TARGET_LANG}}. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
-4. Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
---- REQUIREMENTS END ---
-
---- OUTPUT FORMAT START ---
-{
-    '''
-The output is divided under two headers with the following structure:
-1. --- ANALYSIS ---: You must first provide a detailed analysis of each sentence/phrase in the source text, highlighting potential challenges and methods you will use to address them in your translation.
-2. --- FINAL TRANSLATION ---: Implement your analysis, providing the clean, final translation in {TARGET_LANG}. Your output must be only the clean, final text.
-    '''
-    if ARGS.simulate_thinking
-    else "The output is the clean, final translation in {TARGET_LANG} with no header or any additional formatting. You must not include any additional commentary or analysis."
+    "<role>You are a professional linguistic translator.</role>" * (not ARGS.omit_roles)
 }
---- OUTPUT FORMAT END ---
+<goal>Your primary directive is to provide a fluent, accurate, and contextually appropriate translation.</goal>.
+<requirements>
+  <item>Pay attention to any markedness, whether syntactical or lexical, that should be considered in the translation.</item>
+  <item>Preserve the tone, style, and intent of the source text.</item>
+  <item>Ensure the translation reads naturally in the target language.</item>
+  <item>Adhere to the context provided, as it may contain important information that affects your translation choices.</item>
+</requirements>
+<output_format>
+  <item>First, parahrase the source text in your own words to demonstrate your understanding of its meaning in the paraphrase tag.</item>
+  <item>Then, provide the translation in the translation tag.</item>
+</output_format>
+<example>
+  <input>This is an example source text that needs to be translated.</input>
+  <output>
+    <paraphrase>This is a paraphrase of the input.</paraphrase>
+    <translation>Ini adalah contoh terjemahan dari input.</translation>
+  </output>
+</example>
 """.strip()
 
 
 OPTIMIZER_INIT_USER_PROMPT = """{CONTEXT}
-
---- SOURCE TEXT START ---
-{SOURCE_TEXT}
---- SOURCE TEXT END ---
-
-Provide only the translation following the required output format:
+<source_text>{SOURCE_TEXT}</source_text>
+<task>Provide only the translation following the required output format.</task>
 """.strip()
 
 
-EVALUATOR_COMPLEX_SYSTEM_PROMPT = f"""{"You are a Quality Assurance Gatekeeper for a prestigious publishing house. Your sole purpose is to protect the company's reputation by rejecting any translation that is not of the absolute highest quality. " * (not ARGS.omit_roles)}You are known for being extremely strict, fair, and having an eye for detail.
-
---- MANDATORY EVALUATION RUBRIC START ---
-You MUST first evaluate the translation against the following four criteria. For each criterion, you must assign a grade of **PASS** or **FAIL**.
-
-1.  **Semantic Accuracy:** Does it perfectly preserve the meaning, including all subtext and implications? Make sure to check for any mistranslations or omissions and see if there is any phrase that is translated without considering the full, broader context.
-2.  **Tonal Fidelity:** Does it match the source text's tone (e.g., literary, formal, informal) precisely?
-3.  **Natural Fluency:** Does it read like a native speaker wrote it, with no awkward phrasing or grammatical errors?
-4.  **Nuance Preservation:** Are subtle cultural references, wordplay, or literary devices handled effectively?
---- MANDATORY EVALUATION RUBRIC END ---
-
---- REQUIRED OUTPUT STRUCTURE START ---
-Your entire response MUST follow this structure in this exact order:
-
-1.  **The Rubric Scorecard:** First, list your grades for the four criteria.
-2.  **The Final Grade:** On a new line, provide the overall grade: `pass` or `fail`.
-3.  **The Critique:** Following the final grade, provide your detailed analysis explaining the reasoning behind your scorecard and final grade.
---- REQUIRED OUTPUT STRUCTURE END ---
-
---- CRUCIAL RULE START ---
-If even ONE criterion in your scorecard is marked as **FAIL**, the final grade MUST be `fail`. You can only give a grade of `pass` if all four criteria are a **PASS**.
---- CRUCIAL RULE END ---
-""".strip()
-
-
-EVALUATOR_SIMPLE_SYSTEM_PROMPT = f"""{"You are a meticulous and highly critical linguistic editor tasked with evaluating translations. " * (not ARGS.omit_roles)}Your goal is to ensure that every translation meets the highest standards of quality.
-
---- REQUIREMENTS START ---
-1. The translation must be faithful to the original text in meaning, tone, and style.
-2. The translation must read naturally in the target language.
-3. You must provide constructive feedback highlighting any issues or areas for improvement.
-4. Do not sugarcoat your assessment; be direct and precise.
-5. Avoid vague and broad statements; be specific about what is wrong or right.
-6. Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
---- REQUIREMENTS END ---
-
---- OUTPUT FORMAT START ---
-Your response must include the following sections in order:
-1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
-2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation and provide multiple alternatives or suggestions for each .
-3. Provide your final grade under the `--- VERDICT ---` header, without the subticks:
-    - Respond only with "pass" if you find the translation meets all quality standards, free of ANY issues. Do not give a pass unless it is completely flawless.
-    - If, and only if, there are no suggestions, respond with "fail"
-
-{"You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before." * (ARGS.preserve_history)}
---- OUTPUT FORMAT END ---
+EVALUATOR_SYSTEM_PROMPT = f"""
+{"<role>You are a meticulous and highly critical linguistic editor tasked with evaluating translations.</role>" * (not ARGS.omit_roles)}
+<goal>Your goal is to ensure that every translation meets the highest standards of quality.<goal>
+<requirements>
+  <item>The translation must read naturally in the target language.</item>
+  <item>It must accurately convey the meaning of the source text.</item>
+  <item>Pay close attention to tone, style, any cultural nuances, and markedness of the source text.</item>
+</requirements>
+<output_format>
+  Your response must include the following sections in order:
+  <item>Analysis of the source text in terms of its meaning, tone, style, and any particular challenges or nuances in the analysis tag.</item>
+  <item>Evaluation of the translation attempt under the evaluation tag, identifying specific issues, errors, or awkward phrasings, along with multiple alternatives or suggestions for each.</item>
+  <item>The grade tag must contain 'fail' if you have any suggestions (even minor ones). Respond with 'pass' only if it requires no changes whatsoever and you have nothing to add.</item>
+</output_format>
+<example>
+    <analysis>The source text is a novel excerpt. One markedness observed is the characters are friends with each other, suggested by the use of informal language. This may or may not be translated using the same informality depending on how the target culture depicts closeness</analysis>
+    <evaluation>The translation is generally accurate but has some awkward phrasings. For example, "X" could be better translated as "Y" to sound more natural. Additionally, "A" might be interpreted differently in the target culture; consider using "B" instead.</evaluation>
+    <grade>fail</grade>
+</example>
 """.strip()
 
 
 EVALUATOR_USER_PROMPT = f"""
 {
     '''{CONTEXT}
-
---- SOURCE TEXT (GROUND TRUTH) START ---
-{SOURCE_TEXT}
---- SOURCE TEXT (GROUND TRUTH) END ---
-
---- TRANSLATION TO EVALUATE START ---
-{TRANSLATION_ATTEMPT}
---- TRANSLATION TO EVALUATE END ---
-    '''
+<source_text>{SOURCE_TEXT}</source_text>
+<attempt>{TRANSLATION_ATTEMPT}</attempt>
+    '''.strip()
     * (not ARGS.preserve_history)
 }
-
-Provide the evaluation using the required output structure:
+<task>Evaluate the content in the attempt tag based on the source text provided. Provide only the evaluation following the required output format.</task>
 """.strip()
 
 
-# https://github.com/ggml-org/llama.cpp/tree/master/grammars
-EVALUATOR_JSON_GRAMMAR = r"""boolean ::= ("true" | "false") space
-char ::= [^"\\\x7f\x00-\x1f] | [\\] (["\\bfnrt] | "u" [0-9a-fA-F]{4})
-feedback-kv ::= "\"feedback\"" space ":" space string
-grade ::= ("\"pass\"" | "\"fail\"") space
-grade-kv ::= "\"grade\"" space ":" space grade
-root ::= "{" space rubric-kv "," space grade-kv "," space feedback-kv "}" space
-rubric ::= "{" space rubric-semantic-accuracy-kv "," space rubric-tonal-fidelity-kv "," space rubric-natural-fluency-kv "," space rubric-nuance-preservation-kv "}" space
-rubric-kv ::= "\"rubric\"" space ":" space rubric
-rubric-natural-fluency-kv ::= "\"natural_fluency\"" space ":" space boolean
-rubric-nuance-preservation-kv ::= "\"nuance_preservation\"" space ":" space boolean
-rubric-semantic-accuracy-kv ::= "\"semantic_accuracy\"" space ":" space boolean
-rubric-tonal-fidelity-kv ::= "\"tonal_fidelity\"" space ":" space boolean
-space ::= | " " | "\n"{1,2} [ \t]{0,20}
-string ::= "\"" char* "\"" space
-"""
-
-
-JSON_FORMATTER_SYSTEM_PROMPT = "You are a highly efficient text-parsing robot. Your only function is to extract structured data from a given text and format it as a JSON object. You do not re-interpret, evaluate, or change the information. You only extract and format."
-
-
-JSON_FORMATTER_USER_PROMPT = """Please parse the following evaluation text and convert it into a valid JSON object with three keys: "rubric" (an object with four boolean keys), "grade" (a string), and "feedback" (a string).
-
---- TEXT TO PARSE ---
-{EVALUATION_TEXT}
-
---- JSON OUTPUT ---
-"""
-
-
-OPTIMIZER_RETRY_PROMPT = f"""A previous translation attempt was evaluated.
-
-{
-    "Your task is to consider the editor's feedback and then revise the translation accordingly. "
-    if ARGS.preserve_history
-    else "Your task is to deeply consider the editor's feedback and generate a completely new version of the translation that addresses the identified problems. Start again from scratch, keeping the feedback in mind."
-}
-
+OPTIMIZER_RETRY_PROMPT = f"""
+<context>A previous translation attempt was evaluated.</context>
 {
     '''{CONTEXT}
-
---- SOURCE TEXT (GROUND TRUTH) START ---
-{SOURCE_TEXT}
---- SOURCE TEXT (GROUND TRUTH) END ---
-
---- EDITOR'S FEEDBACK START ---
-{FEEDBACK}
---- EDITOR'S FEEDBACK END ---
-    '''
+<source_text>{SOURCE_TEXT}</source_text>
+<feedback>{FEEDBACK}</feedback>
+    '''.strip()
     * (not ARGS.preserve_history)
 }
-
-Provide only the revised translation following the required output format:
+<task>{
+    "Your task is to consider the editor's feedback and then revise the translation accordingly."
+    if ARGS.preserve_history
+    else "Your task is to deeply consider the editor's feedback and generate a completely new version of the translation that addresses the identified problems. Start again from scratch, keeping the feedback in mind."
+} Follow the output format</task>
 """.strip()
 
 
@@ -217,6 +139,7 @@ class Rubric(TypedDict, total=False):
 class TranslationAttempt(TypedDict, total=False):
     type: Literal["attempt"]
     translation: str
+    raw_output: str
     prompt: str
     system_prompt: str
     seed: int
@@ -300,12 +223,16 @@ def build_messages(
 
 def format_context(state: State) -> str:
     nl = "\n"
-    return f"""--- CONTEXT ---
-Text type: {state["source_text"]["type"]}
-Source Language: {state["source_text"]["source_lang"]}
-Target Language: {state["source_text"]["target_lang"]}
-External knowledge: {nl.join([f"    - {i}" for i in state["source_text"].get("external_knowledge", [])])}
-            """.strip()
+    return f"""
+<context>
+  <text_type>{state["source_text"]["type"]}</text_type>
+  <source_lang>{state["source_text"]["source_lang"]}</source_lang>
+  <target_lang>{state["source_text"]["target_lang"]}</target_lang>
+  <external_knowledge>
+{nl.join([f"    <item>{i}</item>" for i in state["source_text"].get("external_knowledge", [])])}
+  </external_knowledge>
+</context>
+""".strip()
 
 
 async def handle_optimization_state(state: State) -> None:
@@ -325,10 +252,7 @@ async def handle_optimization_state(state: State) -> None:
     )
 
     context = format_context(state)
-    system_prompt = OPTIMIZER_SYSTEM_PROMPT.format(
-        SOURCE_LANG=state["source_text"]["source_lang"],
-        TARGET_LANG=state["source_text"]["target_lang"],
-    )
+    system_prompt = OPTIMIZER_SYSTEM_PROMPT
 
     if is_draft:
         prompt = OPTIMIZER_INIT_USER_PROMPT.format(
@@ -361,31 +285,31 @@ async def handle_optimization_state(state: State) -> None:
     temp = OPTIMIZER_TEMP if is_draft else OPTIMIZER_ALT_TEMP
     seed = state["optimizer_seed"] * 10 + state["attempt"]
     messages = build_messages(state, system_prompt, prompt)
-    translation = await run_inference(
-        state["client"],
-        ARGS.endpoint,
-        ARGS.model,
-        temp,
-        seed,
-        timeout=ARGS.timeout,
-        cache_prompt=ARGS.cache_prompt,
-        messages=messages,
+    output = (
+        await run_inference(
+            state["client"],
+            ARGS.endpoint,
+            ARGS.model,
+            temp,
+            seed,
+            timeout=ARGS.timeout,
+            cache_prompt=ARGS.cache_prompt,
+            messages=messages,
+        )
+    ).strip()
+
+    translation = (
+        output
+        if not (
+            match := re.search(r"<translation>(.*?)</translation>", output, re.DOTALL)
+        )
+        else match.group(1).strip()
     )
-
-    if ARGS.simulate_thinking:
-        match = re.search(r"--- FINAL TRANSLATION ---\s*:?", translation, re.IGNORECASE)
-        if not match:
-            LOGGER.error(
-                "Could not find final translation section in output: %s", translation
-            )
-            translation = "Parsing error"
-        else:
-            translation = translation[match.end() :].strip()
-
     state["history"].append(
         {
             "type": "attempt",
             "translation": translation,
+            "raw_output": output,
             "prompt": prompt,
             "system_prompt": system_prompt,
             "seed": seed,
@@ -403,31 +327,31 @@ async def handle_evaluation_state(state: State) -> None:
         state["attempt"],
         state["max_attempt"],
     )
+
     # do not mutate the original evaluator seed
     seed = state["evaluator_seed"] + state["iteration_id"] * 100
     last_attempt = state["history"][-1]
     assert last_attempt.get("type") == "attempt"
-    system_prompt = (
-        EVALUATOR_SIMPLE_SYSTEM_PROMPT
-        if ARGS.simple_evaluator
-        else EVALUATOR_COMPLEX_SYSTEM_PROMPT
-    )
+
+    system_prompt = EVALUATOR_SYSTEM_PROMPT
     prompt = EVALUATOR_USER_PROMPT.format(
         SOURCE_TEXT=state["source_text"]["text"],
         TRANSLATION_ATTEMPT=last_attempt.get("translation", "Not available."),
         CONTEXT=format_context(state),
     )
     messages = build_messages(state, system_prompt, prompt)
-    free_form_output = await run_inference(
-        state["client"],
-        ARGS.endpoint,
-        ARGS.model,
-        EVALUATOR_TEMP,
-        seed,
-        timeout=ARGS.timeout,
-        cache_prompt=ARGS.cache_prompt,
-        messages=messages,
-    )
+    output = (
+        await run_inference(
+            state["client"],
+            ARGS.endpoint,
+            ARGS.model,
+            EVALUATOR_TEMP,
+            seed,
+            timeout=ARGS.timeout,
+            cache_prompt=ARGS.cache_prompt,
+            messages=messages,
+        )
+    ).strip()
 
     feedback: TranslationFeedback = {
         "type": "feedback",
@@ -435,60 +359,12 @@ async def handle_evaluation_state(state: State) -> None:
         "system_prompt": system_prompt,
         "seed": seed,
         "temp": EVALUATOR_TEMP,
-        "grade": "",
-        "feedback": "",
+        "grade": "fail"
+        if not (match := re.search(r"<grade>(.*?)</grade>", output, re.DOTALL))
+        else match.group(1).strip().lower(),
+        "feedback": output,
     }
     state["history"].append(feedback)
-
-    if ARGS.simple_evaluator:
-        if not (
-            match := re.search(r"--- VERDICT ---\s*:?", free_form_output, re.IGNORECASE)
-        ):
-            feedback["rubric"] = {}
-            # do a dumb guess based on the presence of the word
-            # this usually happens when the context becomes too long
-            feedback["grade"] = "pass" if "pass" in free_form_output.lower() else "fail"
-            feedback["feedback"] = "Failed to find verdict section."
-        else:
-            verdict = free_form_output[match.end() :].strip()
-            grade = verdict.split(maxsplit=1)[0].strip().lower()
-            feedback["grade"] = grade
-            feedback["feedback"] = free_form_output.strip()
-            feedback["rubric"] = {}
-    else:
-        json_formatter_prompt = JSON_FORMATTER_USER_PROMPT.format(
-            EVALUATION_TEXT=free_form_output
-        )
-        json_output_str = await run_inference(
-            state["client"],
-            ARGS.endpoint,
-            ARGS.model,
-            temperature=0.0,
-            seed=1,
-            timeout=ARGS.timeout,
-            grammar=EVALUATOR_JSON_GRAMMAR,
-            cache_prompt=ARGS.cache_prompt,
-            messages=[
-                ("system", JSON_FORMATTER_SYSTEM_PROMPT, "system"),
-                ("user", json_formatter_prompt, "user"),
-            ],
-        )
-
-        try:
-            json_output = json.loads(json_output_str)
-            feedback.update(json_output)
-        except json.JSONDecodeError:
-            LOGGER.error(
-                "Failed to parse JSON from evaluator output: %s", json_output_str
-            )
-            feedback["rubric"] = {
-                "semantic_accuracy": False,
-                "tonal_fidelity": False,
-                "natural_fluency": False,
-                "nuance_preservation": False,
-            }
-            feedback["grade"] = "N/A"
-            feedback["feedback"] = "Failed to parse evaluator output."
 
     if csv_writer := state.get("csv_writer"):
         csv_writer.writerow(
