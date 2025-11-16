@@ -63,16 +63,9 @@ OPTIMIZER_SYSTEM_PROMPT = f"""{
   <item>Adhere to the context provided, as it may contain important information that affects your translation choices.</item>
 </requirements>
 <output_format>
-  <item>First, retell the content in the source_text tag in your own words to demonstrate your understanding in the retelling tag.</item>
-  <item>Then, provide the translation in the translation tag.</item>
+  <item>First, paraphrase and retell the source text in your own words to demonstrate your understanding in the retelling tag.</item>
+  <item>Then, provide your translation of the source text.</item>
 </output_format>
-<example>
-  <input>This is an example source text that needs to be translated.</input>
-  <output>
-    <retelling>This is a retelling of the input.</retelling>
-    <translation>Ini adalah contoh terjemahan dari input.</translation>
-  </output>
-</example>
 """.strip()
 
 
@@ -105,11 +98,6 @@ EVALUATOR_SYSTEM_PROMPT = f"""
   <item>The evaluation of the translation attempt under the evaluation tag, identifying specific issues, errors, or awkward phrasings, along with multiple alternatives or suggestions for each.</item>
   <item>The grade tag must contain 'fail' if you have any suggestions (even minor ones). Respond with 'pass' only if it requires no changes whatsoever and you have nothing to add.</item>
 </output_format>
-<example>
-    <analysis>The source text is a novel excerpt. One markedness observed is the characters are friends with each other, suggested by the use of informal language. This may or may not be translated using the same informality depending on how the target culture depicts closeness</analysis>
-    <evaluation>The translation is generally accurate but has some awkward phrasings. For example, "X" could be better translated as "Y" to sound more natural. Additionally, "A" might be interpreted differently in the target culture; consider using "B" instead.</evaluation>
-    <grade>fail</grade>
-</example>
 """.strip()
 
 
