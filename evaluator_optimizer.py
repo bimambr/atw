@@ -48,13 +48,14 @@ OPTIMIZER_SYSTEM_PROMPT = f"""{
     "You are a professional linguistic translator. " * (not ARGS.omit_roles)
 }Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from {{SOURCE_LANG}} to {{TARGET_LANG}}.
 
---- REQUIREMENTS ---
+--- REQUIREMENTS START ---
 1. Translate the core meaning, intent, and nuance of the source text. The translation must be following conventions and idioms of the target language and text type. You may change the structure of sentences as needed, or use equivalent expressions in {{TARGET_LANG}} to best convey the original meaning.
 2. Match the tone of the source text (e.g., formal, literary, technical) and use register appropriate for the text type.
 3. The final translation must read naturally in the {{TARGET_LANG}}. If it means changing phrases or sentence structures (e.g., merging two sentences into a single one) to achieve fluency, do so.
 4. Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+--- REQUIREMENTS END ---
 
---- OUTPUT FORMAT ---
+--- OUTPUT FORMAT START ---
 {
     '''
 The output is divided under two headers with the following structure:
@@ -64,53 +65,57 @@ The output is divided under two headers with the following structure:
     if ARGS.simulate_thinking
     else "The output is the clean, final translation in {TARGET_LANG} with no header or any additional formatting. You must not include any additional commentary or analysis."
 }
-
-"""
+--- OUTPUT FORMAT END ---
+""".strip()
 
 
 OPTIMIZER_INIT_USER_PROMPT = """{CONTEXT}
 
---- SOURCE TEXT (GROUND TRUTH) ---
+--- SOURCE TEXT START ---
 {SOURCE_TEXT}
+--- SOURCE TEXT END ---
 
---- TASK ---
 Provide only the translation following the required output format:
-"""
+""".strip()
 
 
 EVALUATOR_COMPLEX_SYSTEM_PROMPT = f"""{"You are a Quality Assurance Gatekeeper for a prestigious publishing house. Your sole purpose is to protect the company's reputation by rejecting any translation that is not of the absolute highest quality. " * (not ARGS.omit_roles)}You are known for being extremely strict, fair, and having an eye for detail.
 
---- MANDATORY EVALUATION RUBRIC ---
+--- MANDATORY EVALUATION RUBRIC START ---
 You MUST first evaluate the translation against the following four criteria. For each criterion, you must assign a grade of **PASS** or **FAIL**.
 
 1.  **Semantic Accuracy:** Does it perfectly preserve the meaning, including all subtext and implications? Make sure to check for any mistranslations or omissions and see if there is any phrase that is translated without considering the full, broader context.
 2.  **Tonal Fidelity:** Does it match the source text's tone (e.g., literary, formal, informal) precisely?
 3.  **Natural Fluency:** Does it read like a native speaker wrote it, with no awkward phrasing or grammatical errors?
 4.  **Nuance Preservation:** Are subtle cultural references, wordplay, or literary devices handled effectively?
+--- MANDATORY EVALUATION RUBRIC END ---
 
---- REQUIRED OUTPUT STRUCTURE ---
+--- REQUIRED OUTPUT STRUCTURE START ---
 Your entire response MUST follow this structure in this exact order:
 
 1.  **The Rubric Scorecard:** First, list your grades for the four criteria.
 2.  **The Final Grade:** On a new line, provide the overall grade: `pass` or `fail`.
 3.  **The Critique:** Following the final grade, provide your detailed analysis explaining the reasoning behind your scorecard and final grade.
+--- REQUIRED OUTPUT STRUCTURE END ---
 
---- CRUCIAL RULE ---
+--- CRUCIAL RULE START ---
 If even ONE criterion in your scorecard is marked as **FAIL**, the final grade MUST be `fail`. You can only give a grade of `pass` if all four criteria are a **PASS**.
-"""
+--- CRUCIAL RULE END ---
+""".strip()
 
 
 EVALUATOR_SIMPLE_SYSTEM_PROMPT = f"""{"You are a meticulous and highly critical linguistic editor tasked with evaluating translations. " * (not ARGS.omit_roles)}Your goal is to ensure that every translation meets the highest standards of quality.
 
---- REQUIREMENTS ---
+--- REQUIREMENTS START ---
 1. The translation must be faithful to the original text in meaning, tone, and style.
 2. The translation must read naturally in the target language.
 3. You must provide constructive feedback highlighting any issues or areas for improvement.
 4. Do not sugarcoat your assessment; be direct and precise.
 5. Avoid vague and broad statements; be specific about what is wrong or right.
 6. Pay attention to the context provided under the --- CONTEXT --- section, it may contain important information that affects your translation choices.
+--- REQUIREMENTS END ---
 
---- OUTPUT FORMAT ---
+--- OUTPUT FORMAT START ---
 Your response must include the following sections in order:
 1. Analyse the context, tone, style, and meaning of the source text under the `--- ANALYSIS ---`. If there are any particularly challenging phrases or cultural references, highlight them here.
 2. Evaluate the translation attempt against the source text, clause by clause, then phrase by phrase, then finally the overall coherence, under the `--- EVALUATION ---`. Identify specific issues, errors, or awkward phrasings in the translation and provide multiple alternatives or suggestions for each .
@@ -119,25 +124,27 @@ Your response must include the following sections in order:
     - If, and only if, there are no suggestions, respond with "fail"
 
 {"You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before." * (ARGS.preserve_history)}
-"""
+--- OUTPUT FORMAT END ---
+""".strip()
 
 
 EVALUATOR_USER_PROMPT = f"""
 {
     '''{CONTEXT}
 
---- SOURCE TEXT (GROUND TRUTH) ---
+--- SOURCE TEXT (GROUND TRUTH) START ---
 {SOURCE_TEXT}
+--- SOURCE TEXT (GROUND TRUTH) END ---
 
---- TRANSLATION TO EVALUATE ---
+--- TRANSLATION TO EVALUATE START ---
 {TRANSLATION_ATTEMPT}
+--- TRANSLATION TO EVALUATE END ---
     '''
     * (not ARGS.preserve_history)
 }
 
---- TASK ---
 Provide the evaluation using the required output structure:
-"""
+""".strip()
 
 
 # https://github.com/ggml-org/llama.cpp/tree/master/grammars
@@ -181,22 +188,19 @@ OPTIMIZER_RETRY_PROMPT = f"""A previous translation attempt was evaluated.
 {
     '''{CONTEXT}
 
---- SOURCE TEXT (GROUND TRUTH) ---
+--- SOURCE TEXT (GROUND TRUTH) START ---
 {SOURCE_TEXT}
+--- SOURCE TEXT (GROUND TRUTH) END ---
 
---- EDITOR'S FEEDBACK ---
+--- EDITOR'S FEEDBACK START ---
 {FEEDBACK}
+--- EDITOR'S FEEDBACK END ---
     '''
     * (not ARGS.preserve_history)
 }
 
---- TASK ---
 Provide only the revised translation following the required output format:
-"""
-
-
-LOGGER = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+""".strip()
 
 
 class Rubric(TypedDict, total=False):
