@@ -195,26 +195,6 @@ Provide only the revised translation following the required output format:
 """
 
 
-VERIFIER_SYSTEM_PROMPT = """You are a robotic and literal Quality Assurance Verifier. Your only function is to check if a revised text has correctly implemented a set of required changes. You do not have opinions or creative ideas.
-
---- REQUIRED OUTPUT ---
-Your entire response must be a single word: `pass` or `fail`.
--   Output `pass` if the New Translation successfully fixed the problems described in the Original Critique.
--   Output `fail` if it did not.
-"""
-
-
-VERIFIER_USER_PROMPT = """--- ORIGINAL CRITIQUE (The Requirements) ---
-{ORIGINAL_FEEDBACK}
-
---- NEW TRANSLATION (The Implementation) ---
-{NEW_TRANSLATION_ATTEMPT}
-
---- TASK ---
-Did the New Translation successfully implement the changes described in the Original Critique? Respond with only `pass` or `fail`.
-"""
-
-
 LOGGER = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
