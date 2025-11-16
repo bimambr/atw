@@ -533,92 +533,6 @@ async def handle_evaluation_state(state: State) -> None:
         state["next_state"] = ""
 
 
-async def handle_verification_state(state: State) -> None:
-    LOGGER.info(
-        "Starting verification for text %d, iteration %d/%d, attempt %d/%d",
-        state["source_text"]["id"],
-        state["iteration_id"],
-        ARGS.iterations,
-        state["attempt"],
-        state["max_attempt"],
-    )
-
-    last_attempt = state["history"][-1]
-    assert last_attempt["type"] == "attempt"
-
-    last_feedback = get_last_feedback(state)
-    if not last_feedback:
-        LOGGER.error(
-            "No feedback found from previous attempts for text %d, iteration %d/%d, attempt %d/%d. Cannot proceed with verification.",
-            state["source_text"]["id"],
-            state["iteration_id"],
-            ARGS.iterations,
-            state["attempt"],
-            state["max_attempt"],
-        )
-        state["next_state"] = ""
-        return
-
-    temp = 0.0
-    # do not mutate the original evaluator seed
-    seed = state["evaluator_seed"] + state["iteration_id"] * 200 + state["attempt"]
-    verification_prompt = VERIFIER_USER_PROMPT.format(
-        ORIGINAL_FEEDBACK=last_feedback["feedback"],
-        NEW_TRANSLATION_ATTEMPT=last_attempt["translation"],
-    )
-    messages = build_messages(state, VERIFIER_SYSTEM_PROMPT, verification_prompt)
-    verification_output = await run_inference(
-        state["client"],
-        ARGS.endpoint,
-        ARGS.model,
-        temperature=temp,
-        seed=seed,
-        timeout=ARGS.timeout,
-        cache_prompt=ARGS.cache_prompt,
-        messages=messages,
-    )
-    verification_result = verification_output.strip().lower()
-    result: TranslationVerification = {
-        "type": "verification",
-        "result": verification_result,
-        "prompt": verification_prompt,
-        "system_prompt": VERIFIER_SYSTEM_PROMPT,
-        "seed": seed,
-        "temp": temp,
-    }
-    state["history"].append(result)
-    state["next_state"] = (
-        ""
-        if state["attempt"] >= state["max_attempt"] or verification_result == "pass"
-        else "optimization"
-    )
-    state["csv_writer"].writerow(
-        (
-            state["source_text"]["id"],
-            state["iteration_id"],
-            state["attempt"],
-            last_attempt["seed"],
-            last_attempt["temp"],
-            seed,
-            temp,
-            state["source_text"]["text"],
-            last_attempt["translation"],
-            "verifier",
-            "N/A",
-            verification_result,
-            "N/A",
-            time.ctime(),
-            last_attempt["system_prompt"],
-            last_attempt["prompt"],
-            VERIFIER_SYSTEM_PROMPT,
-            verification_prompt,
-        )
-    )
-    # this will either get overridden by the next iteration
-    # or get used in the next optimization state
-    state["optimizer_seed"] += 1
-
-
 class FileProcessor:
     CSV_HEADER: tuple[str, ...] = (
         "text_id",
@@ -644,7 +558,6 @@ class FileProcessor:
     STATE_HANDLERS = {
         "optimization": handle_optimization_state,
         "evaluation": handle_evaluation_state,
-        "verification": handle_verification_state,
     }
 
     def __init__(

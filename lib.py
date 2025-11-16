@@ -242,12 +242,6 @@ def get_parsed_args() -> CLIArgs:
         help="Omit roles in system prompts",
     )
     parser.add_argument(
-        "--evaluate-once",
-        action="store_true",
-        default=False,
-        help="Evaluate only once then use a simple gate instead of after each optimization iteration (DEPRECATED).",
-    )
-    parser.add_argument(
         "--preserve-history",
         action="store_true",
         default=False,
