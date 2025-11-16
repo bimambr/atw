@@ -23,7 +23,7 @@ import signal
 import time
 from io import TextIOWrapper
 from pathlib import Path
-from typing import Any, Callable, Iterable, Literal, Protocol, TypedDict
+from typing import Any, Iterable, Literal, Protocol, TypedDict
 
 import aiohttp
 
@@ -48,6 +48,10 @@ logging.basicConfig(level=logging.INFO)
 ARGS = get_parsed_args()
 
 
+# gemma models do not have the system role concept, but unsloth's chat template handles it
+# so we can still use it
+# ref: https://ai.google.dev/gemma/docs/core/prompt-structure
+# ref: https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF?chat_template=default
 OPTIMIZER_SYSTEM_PROMPT = f"""{
     "<role>You are a professional linguistic translator.</role>" * (not ARGS.omit_roles)
 }
@@ -59,23 +63,33 @@ OPTIMIZER_SYSTEM_PROMPT = f"""{
   <item>Adhere to the context provided, as it may contain important information that affects your translation choices.</item>
 </requirements>
 <output_format>
-  <item>First, parahrase the source text in your own words to demonstrate your understanding of its meaning in the paraphrase tag.</item>
+  <item>First, retell the content in the source_text tag in your own words to demonstrate your understanding in the retelling tag.</item>
   <item>Then, provide the translation in the translation tag.</item>
 </output_format>
 <example>
   <input>This is an example source text that needs to be translated.</input>
   <output>
-    <paraphrase>This is a paraphrase of the input.</paraphrase>
+    <retelling>This is a retelling of the input.</retelling>
     <translation>Ini adalah contoh terjemahan dari input.</translation>
   </output>
 </example>
 """.strip()
 
 
-OPTIMIZER_INIT_USER_PROMPT = """{CONTEXT}
+OPTIMIZER_INIT_USER_PROMPT = """
+{CONTEXT}
 <source_text>{SOURCE_TEXT}</source_text>
 <task>Provide only the translation following the required output format.</task>
 """.strip()
+
+
+OPTIMIZER_GRAMMAR = r"""
+root ::= "<retelling>" text "</retelling>" "\n" "<translation>" text "</translation>"
+text ::= (
+    [^<] |
+    "<" [^/]
+)*
+"""
 
 
 EVALUATOR_SYSTEM_PROMPT = f"""
@@ -87,9 +101,8 @@ EVALUATOR_SYSTEM_PROMPT = f"""
   <item>Pay close attention to tone, style, any cultural nuances, and markedness of the source text.</item>
 </requirements>
 <output_format>
-  Your response must include the following sections in order:
-  <item>Analysis of the source text in terms of its meaning, tone, style, and any particular challenges or nuances in the analysis tag.</item>
-  <item>Evaluation of the translation attempt under the evaluation tag, identifying specific issues, errors, or awkward phrasings, along with multiple alternatives or suggestions for each.</item>
+  <item>The analysis tag contains the analysis of the source text in terms of its meaning, tone, style, and any particular challenges or nuances.</item>
+  <item>The evaluation of the translation attempt under the evaluation tag, identifying specific issues, errors, or awkward phrasings, along with multiple alternatives or suggestions for each.</item>
   <item>The grade tag must contain 'fail' if you have any suggestions (even minor ones). Respond with 'pass' only if it requires no changes whatsoever and you have nothing to add.</item>
 </output_format>
 <example>
@@ -100,40 +113,30 @@ EVALUATOR_SYSTEM_PROMPT = f"""
 """.strip()
 
 
-EVALUATOR_USER_PROMPT = f"""
-{
-    '''{CONTEXT}
+EVALUATOR_USER_PROMPT = """
+{CONTEXT}
 <source_text>{SOURCE_TEXT}</source_text>
 <attempt>{TRANSLATION_ATTEMPT}</attempt>
-    '''.strip()
-    * (not ARGS.preserve_history)
-}
 <task>Evaluate the content in the attempt tag based on the source text provided. Provide only the evaluation following the required output format.</task>
 """.strip()
 
 
-OPTIMIZER_RETRY_PROMPT = f"""
-<context>A previous translation attempt was evaluated.</context>
-{
-    '''{CONTEXT}
+EVALUATOR_GRAMMAR = r"""
+root ::= "<analysis>" text "</analysis>" "\n" "<evaluation>" text "</evaluation>" "\n" "<grade>" grade "</grade>"
+text ::= (
+    [^<] |
+    "<" [^/]
+)*
+grade ::= "pass" | "fail"
+"""
+
+
+OPTIMIZER_RETRY_PROMPT = """
+{CONTEXT}
 <source_text>{SOURCE_TEXT}</source_text>
-<feedback>{FEEDBACK}</feedback>
-    '''.strip()
-    * (not ARGS.preserve_history)
-}
-<task>{
-    "Your task is to consider the editor's feedback and then revise the translation accordingly."
-    if ARGS.preserve_history
-    else "Your task is to deeply consider the editor's feedback and generate a completely new version of the translation that addresses the identified problems. Start again from scratch, keeping the feedback in mind."
-} Follow the output format</task>
+<evaluation>{EVALUATION}</evaluation>
+<task>A translation attempt has been evaluated. Your task is to consider the editor's evaluation and then revise the translation accordingly. Follow the output format</task>
 """.strip()
-
-
-class Rubric(TypedDict, total=False):
-    semantic_accuracy: bool
-    tonal_fidelity: bool
-    natural_fluency: bool
-    nuance_preservation: bool
 
 
 class TranslationAttempt(TypedDict, total=False):
@@ -146,11 +149,10 @@ class TranslationAttempt(TypedDict, total=False):
     temp: float
 
 
-class TranslationFeedback(TypedDict, total=False):
-    type: Literal["feedback"]
-    rubric: Rubric
+class TranslationEvaluation(TypedDict, total=False):
+    type: Literal["evaluation"]
     grade: str
-    feedback: str
+    raw_output: str
     prompt: str
     system_prompt: str
     seed: int
@@ -172,7 +174,7 @@ class State(TypedDict):
     next_state: str
     max_attempt: int
     attempt: int
-    history: list[TranslationAttempt | TranslationFeedback]
+    history: list[TranslationAttempt | TranslationEvaluation]
     optimizer_seed: int
     evaluator_seed: int
     client: aiohttp.ClientSession
@@ -185,11 +187,11 @@ class CSVWriter(Protocol):
     def writerows(self, rows: Iterable[Iterable[Any]]) -> None: ...
 
 
-def get_last_feedback(state: State) -> TranslationFeedback | None:
+def get_last_evaluation(state: State) -> TranslationEvaluation | None:
     for entry in state["history"][::-1]:
         assert "type" in entry
-        if entry["type"] == "feedback":
-            return entry  # type: ignore
+        if entry["type"] == "evaluation":
+            return entry
     return None
 
 
@@ -197,25 +199,25 @@ def fill_in_messages(state: State, messages: list[tuple[str, str, str]]) -> None
     if not ARGS.preserve_history:
         return
 
-    getter: dict[
-        str, Callable[[TranslationAttempt | TranslationFeedback], tuple[str, str]]
-    ] = {
-        "attempt": lambda e: (e.get("translation", ""), "optimizer"),
-        "feedback": lambda e: (e.get("feedback", ""), "evaluator"),
+    roles: dict[str, str] = {
+        "attempt": "translator",
+        "evaluation": "editor",
     }
 
     for entry in state["history"]:
         assert "type" in entry
         assert "prompt" in entry
+        assert "system_prompt" in entry
+        assert "raw_output" in entry
 
         messages.append(("user", entry["prompt"], "user"))
-        messages.append(("assistant",) + getter[entry["type"]](entry))
+        messages.append(("assistant", entry["raw_output"], roles[entry["type"]]))
 
 
 def build_messages(
     state: State, system_prompt: str, user_prompt: str
 ) -> list[tuple[str, str, str]]:
-    messages = [("system", system_prompt, "system")]
+    messages: list[tuple[str, str, str]] = [("system", system_prompt, "system")]
     fill_in_messages(state, messages)
     messages.append(("user", user_prompt, "user"))
     return messages
@@ -260,13 +262,12 @@ async def handle_optimization_state(state: State) -> None:
             CONTEXT=context,
         )
     else:
-        # walk backwards to find the last attempt with feedback
-        last_feedback = get_last_feedback(state)
+        last_evaluation = get_last_evaluation(state)
 
         # THIS SHOULD NEVER HAPPEN
-        if not last_feedback:
+        if not last_evaluation:
             LOGGER.error(
-                "No feedback found from previous attempts for text %d, iteration %d/%d, attempt %d/%d. Cannot proceed with refinement.",
+                "No evaluation found from previous attempts for text %d, iteration %d/%d, attempt %d/%d. Cannot proceed with refinement.",
                 state["source_text"]["id"],
                 state["iteration_id"],
                 ARGS.iterations,
@@ -276,9 +277,10 @@ async def handle_optimization_state(state: State) -> None:
             state["next_state"] = ""
             return
 
+        assert "raw_output" in last_evaluation
         prompt = OPTIMIZER_RETRY_PROMPT.format(
             SOURCE_TEXT=state["source_text"]["text"],
-            FEEDBACK=last_feedback.get("feedback", "Not available."),
+            EVALUATION=last_evaluation["raw_output"],
             CONTEXT=context,
         )
 
@@ -295,13 +297,14 @@ async def handle_optimization_state(state: State) -> None:
             timeout=ARGS.timeout,
             cache_prompt=ARGS.cache_prompt,
             messages=messages,
+            grammar=OPTIMIZER_GRAMMAR,
         )
     ).strip()
 
     translation = (
         output
         if not (
-            match := re.search(r"<translation>(.*?)</translation>", output, re.DOTALL)
+            match := re.search(r"<translation>(.*?)<\/translation>", output, re.DOTALL)
         )
         else match.group(1).strip()
     )
@@ -331,12 +334,14 @@ async def handle_evaluation_state(state: State) -> None:
     # do not mutate the original evaluator seed
     seed = state["evaluator_seed"] + state["iteration_id"] * 100
     last_attempt = state["history"][-1]
+
     assert last_attempt.get("type") == "attempt"
+    assert "translation" in last_attempt
 
     system_prompt = EVALUATOR_SYSTEM_PROMPT
     prompt = EVALUATOR_USER_PROMPT.format(
         SOURCE_TEXT=state["source_text"]["text"],
-        TRANSLATION_ATTEMPT=last_attempt.get("translation", "Not available."),
+        TRANSLATION_ATTEMPT=last_attempt["translation"],
         CONTEXT=format_context(state),
     )
     messages = build_messages(state, system_prompt, prompt)
@@ -350,23 +355,29 @@ async def handle_evaluation_state(state: State) -> None:
             timeout=ARGS.timeout,
             cache_prompt=ARGS.cache_prompt,
             messages=messages,
+            grammar=EVALUATOR_GRAMMAR,
         )
     ).strip()
 
-    feedback: TranslationFeedback = {
-        "type": "feedback",
+    evaluation: TranslationEvaluation = {
+        "type": "evaluation",
         "prompt": prompt,
         "system_prompt": system_prompt,
         "seed": seed,
         "temp": EVALUATOR_TEMP,
         "grade": "fail"
-        if not (match := re.search(r"<grade>(.*?)</grade>", output, re.DOTALL))
+        if not (match := re.search(r"<grade>(.*?)<\/grade>", output, re.DOTALL))
         else match.group(1).strip().lower(),
-        "feedback": output,
+        "raw_output": output,
     }
-    state["history"].append(feedback)
+    state["history"].append(evaluation)
 
     if csv_writer := state.get("csv_writer"):
+        assert "translation" in last_attempt
+        assert "raw_output" in last_attempt
+        assert "grade" in evaluation
+        assert "raw_output" in evaluation
+
         csv_writer.writerow(
             (
                 state["source_text"]["id"],
@@ -377,12 +388,10 @@ async def handle_evaluation_state(state: State) -> None:
                 seed,
                 EVALUATOR_TEMP,
                 state["source_text"]["text"],
-                last_attempt.get("translation", "Not available."),
-                "evaluator",
-                "\n".join(f"{k}: {v}" for k, v in feedback.get("rubric", {}).items())
-                or "N/A",
-                feedback.get("grade", "N/A"),
-                feedback.get("feedback", "Not available."),
+                last_attempt["translation"],
+                evaluation["grade"],
+                last_attempt["raw_output"],
+                evaluation["raw_output"],
                 time.ctime(),
                 last_attempt.get("system_prompt", "Not available."),
                 last_attempt.get("prompt", "Not available."),
@@ -392,7 +401,7 @@ async def handle_evaluation_state(state: State) -> None:
         )
 
     state["next_state"] = "optimization"
-    if "pass" in feedback["grade"] or state["attempt"] >= state["max_attempt"]:
+    if "pass" in evaluation["grade"] or state["attempt"] >= state["max_attempt"]:
         state["next_state"] = ""
 
 
@@ -407,10 +416,9 @@ class FileProcessor:
         "evaluator_temp",
         "source_text",
         "translation_attempt",
-        "evaluator_type",
-        "rubric",
         "grade",
-        "feedback",
+        "raw_translation",
+        "raw_evaluation",
         "timestamp",
         "optimizer_system_prompt",
         "optimizer_user_prompt",
