@@ -41,6 +41,8 @@ OPTIMIZER_ALT_TEMP = 0.01
 EVALUATOR_SEED = 727
 SEEDS = [101, 202, 303, 404, 505, 606, 707, 808, 909, 1010]
 ARGS = get_parsed_args()
+
+
 OPTIMIZER_SYSTEM_PROMPT = f"""{
     "You are a professional linguistic translator. " * (not ARGS.omit_roles)
 }Your primary directive is to provide a fluent, accurate, and contextually appropriate translation from {{SOURCE_LANG}} to {{TARGET_LANG}}.
@@ -63,6 +65,8 @@ The output is divided under two headers with the following structure:
 }
 
 """
+
+
 OPTIMIZER_INIT_USER_PROMPT = """{CONTEXT}
 
 --- SOURCE TEXT (GROUND TRUTH) ---
@@ -71,6 +75,8 @@ OPTIMIZER_INIT_USER_PROMPT = """{CONTEXT}
 --- TASK ---
 Provide only the translation following the required output format:
 """
+
+
 EVALUATOR_COMPLEX_SYSTEM_PROMPT = f"""{"You are a Quality Assurance Gatekeeper for a prestigious publishing house. Your sole purpose is to protect the company's reputation by rejecting any translation that is not of the absolute highest quality. " * (not ARGS.omit_roles)}You are known for being extremely strict, fair, and having an eye for detail.
 
 --- MANDATORY EVALUATION RUBRIC ---
@@ -91,6 +97,8 @@ Your entire response MUST follow this structure in this exact order:
 --- CRUCIAL RULE ---
 If even ONE criterion in your scorecard is marked as **FAIL**, the final grade MUST be `fail`. You can only give a grade of `pass` if all four criteria are a **PASS**.
 """
+
+
 EVALUATOR_SIMPLE_SYSTEM_PROMPT = f"""{"You are a meticulous and highly critical linguistic editor tasked with evaluating translations. " * (not ARGS.omit_roles)}Your goal is to ensure that every translation meets the highest standards of quality.
 
 --- REQUIREMENTS ---
@@ -111,6 +119,8 @@ Your response must include the following sections in order:
 
 {"You may skip number 1 if it's already provided in previous interactions. For number 2, you must validate whether the translation correctly implements the analysis and evaluation provided earlier. You may add to the analysis if you find new issues that haven't been covered before." * (ARGS.preserve_history)}
 """
+
+
 EVALUATOR_USER_PROMPT = f"""
 {
     '''{CONTEXT}
@@ -127,6 +137,8 @@ EVALUATOR_USER_PROMPT = f"""
 --- TASK ---
 Provide the evaluation using the required output structure:
 """
+
+
 # https://github.com/ggml-org/llama.cpp/tree/master/grammars
 EVALUATOR_JSON_GRAMMAR = r"""boolean ::= ("true" | "false") space
 char ::= [^"\\\x7f\x00-\x1f] | [\\] (["\\bfnrt] | "u" [0-9a-fA-F]{4})
@@ -143,7 +155,11 @@ rubric-tonal-fidelity-kv ::= "\"tonal_fidelity\"" space ":" space boolean
 space ::= | " " | "\n"{1,2} [ \t]{0,20}
 string ::= "\"" char* "\"" space
 """
-JSON_FORMATTER_SYSTEM_PROMPT = """You are a highly efficient text-parsing robot. Your only function is to extract structured data from a given text and format it as a JSON object. You do not re-interpret, evaluate, or change the information. You only extract and format."""
+
+
+JSON_FORMATTER_SYSTEM_PROMPT = "You are a highly efficient text-parsing robot. Your only function is to extract structured data from a given text and format it as a JSON object. You do not re-interpret, evaluate, or change the information. You only extract and format."
+
+
 JSON_FORMATTER_USER_PROMPT = """Please parse the following evaluation text and convert it into a valid JSON object with three keys: "rubric" (an object with four boolean keys), "grade" (a string), and "feedback" (a string).
 
 --- TEXT TO PARSE ---
@@ -151,6 +167,8 @@ JSON_FORMATTER_USER_PROMPT = """Please parse the following evaluation text and c
 
 --- JSON OUTPUT ---
 """
+
+
 OPTIMIZER_RETRY_PROMPT = f"""A previous translation attempt was evaluated.
 
 {
@@ -174,6 +192,8 @@ OPTIMIZER_RETRY_PROMPT = f"""A previous translation attempt was evaluated.
 --- TASK ---
 Provide only the revised translation following the required output format:
 """
+
+
 VERIFIER_SYSTEM_PROMPT = """You are a robotic and literal Quality Assurance Verifier. Your only function is to check if a revised text has correctly implemented a set of required changes. You do not have opinions or creative ideas.
 
 --- REQUIRED OUTPUT ---
@@ -181,6 +201,8 @@ Your entire response must be a single word: `pass` or `fail`.
 -   Output `pass` if the New Translation successfully fixed the problems described in the Original Critique.
 -   Output `fail` if it did not.
 """
+
+
 VERIFIER_USER_PROMPT = """--- ORIGINAL CRITIQUE (The Requirements) ---
 {ORIGINAL_FEEDBACK}
 
@@ -190,6 +212,7 @@ VERIFIER_USER_PROMPT = """--- ORIGINAL CRITIQUE (The Requirements) ---
 --- TASK ---
 Did the New Translation successfully implement the changes described in the Original Critique? Respond with only `pass` or `fail`.
 """
+
 
 LOGGER = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
