@@ -66,7 +66,7 @@ OPTIMIZER_SYSTEM_PROMPT = f"""{
   <item>Adhere to the context provided, as it may contain important information that affects your translation choices.</item>
 </requirements>
 <output_format>
-  <item>First, paraphrase and retell the source text in your own words to demonstrate your understanding in the retelling tag.</item>
+  <item>First, paraphrase and retell the source text in English to demonstrate your understanding in the retelling tag.</item>
   <item>Then, provide your translation of the source text.</item>
 </output_format>
 """.strip()
@@ -75,7 +75,7 @@ OPTIMIZER_SYSTEM_PROMPT = f"""{
 OPTIMIZER_INIT_USER_PROMPT = """
 {CONTEXT}
 <source_text>{SOURCE_TEXT}</source_text>
-<task>Provide only the translation following the required output format.</task>
+<task>Provide only the retelling and translation following the required output format.</task>
 """.strip()
 
 
@@ -95,6 +95,7 @@ EVALUATOR_SYSTEM_PROMPT = f"""
   <item>The translation must read naturally in the target language.</item>
   <item>It must accurately convey the meaning of the source text.</item>
   <item>Pay close attention to tone, style, any cultural nuances, and markedness of the source text.</item>
+  <item>Explanations must be provided in English.</item>
 </requirements>
 <output_format>
   <item>The analysis tag contains the analysis of the source text in terms of its meaning, tone, style, and any particular challenges or nuances.</item>
