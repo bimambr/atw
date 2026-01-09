@@ -1,3 +1,0 @@
-- attempts 1-2: used 0.2 and 1.2 respectively for the low and high temps.
-- attempt 3: used 0 and 1.5 respectively for the low and high temps.
-- attempt 4: added an instruction to add translator note when there's a foreign word with no direct translation
