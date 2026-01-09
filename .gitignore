@@ -3,3 +3,4 @@
 /*.xls
 *.gguf
 *.pyc
+evaluator_optimizer_attempts/
