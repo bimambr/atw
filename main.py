@@ -24,12 +24,14 @@ import time
 from io import TextIOWrapper
 from pathlib import Path
 from types import TracebackType
-from typing import Any, Iterable, Literal, Protocol, TypedDict
+from typing import Any, Final, Iterable, Literal, Protocol, TypedDict, cast
 
 import aiohttp
 
+from _types import Corpus, IdiomMatchResult
 from lib import (
     Bail,
+    get_idiom_definitions,
     get_next_available_path,
     get_parsed_args,
     run_inference,
@@ -58,12 +60,15 @@ ARGS = get_parsed_args()
 OPTIMIZER_SYSTEM_PROMPT = f"""{
     "<role>You are a professional linguistic translator.</role>" * (not ARGS.omit_roles)
 }
-<goal>Your primary directive is to provide a fluent, accurate, and contextually appropriate translation.</goal>.
+<goal>Your primary directive is to provide a fluent, accurate, and contextually appropriate translation, following Nababan's Translation Quality Assessment (TQA) principles: maximize accuracy, acceptability, and readability.</goal>.
 <requirements>
+  <item>Ensure **accuracy**: convey the exact meaning of the source text, preserving semantic nuances.</item>
+  <item>Ensure **acceptability**: use language that reads naturally, conforms to target language norms, and preserves style and tone.</item>
+  <item>Ensure **readability**: the translation must be clear, coherent, and easy to understand.</item>
   <item>Pay attention to any markedness, whether syntactical or lexical, that should be considered in the translation.</item>
   <item>Preserve the tone, style, and intent of the source text.</item>
   <item>Ensure the translation reads naturally in the target language.</item>
-  <item>Adhere to the context provided, as it may contain important information that affects your translation choices.</item>
+  <item>Adhere to the context provided, as it may contain important information affecting your translation choices.</item>
 </requirements>
 <output_format>
   <item>First, paraphrase and retell the source text in English to demonstrate your understanding in the retelling tag.</item>
@@ -90,17 +95,19 @@ text ::= (
 
 EVALUATOR_SYSTEM_PROMPT = f"""
 {"<role>You are a meticulous and highly critical linguistic editor tasked with evaluating translations.</role>" * (not ARGS.omit_roles)}
-<goal>Your goal is to ensure that every translation meets the highest standards of quality.<goal>
+<goal>Your goal is to ensure that every translation meets the highest standards of quality using Nababan's Translation Quality Assessment (TQA) framework.</goal>
 <requirements>
-  <item>The translation must read naturally in the target language.</item>
-  <item>It must accurately convey the meaning of the source text.</item>
-  <item>Pay close attention to tone, style, any cultural nuances, and markedness of the source text.</item>
-  <item>Explanations must be provided in English.</item>
+  <item>Evaluate **accuracy**: Does the translation convey the exact meaning and semantic nuances of the source text? Identify any **substantive errors**.</item>
+  <item>Evaluate **acceptability**: Is the translation natural, stylistically appropriate, and consistent with target language norms? Identify any **formal errors**.</item>
+  <item>Evaluate **readability**: Is the translation coherent, smooth, and easy to understand?</item>
+  <item>Pay close attention to tone, style, cultural nuances, and any markedness of the source text.</item>
+  <item>Provide detailed explanations in English, categorizing errors where possible as **substantive** or **formal** and suggesting multiple alternatives or improvements.</item>
+  <item>Do not repeat or contradict the previous suggestions</item>
 </requirements>
 <output_format>
-  <item>The analysis tag contains the analysis of the source text in terms of its meaning, tone, style, and any particular challenges or nuances.</item>
-  <item>The evaluation of the translation attempt under the evaluation tag, identifying specific issues, errors, or awkward phrasings, along with multiple alternatives or suggestions for each.</item>
-  <item>The grade tag must contain 'fail' if you have any suggestions (even minor ones). Respond with 'pass' only if it requires no changes whatsoever and you have nothing to add.</item>
+  <item>The analysis tag contains analysis of the source text in terms of meaning, tone, style, and translation challenges.</item>
+  <item>The evaluation tag contains a detailed critique of the translation attempt, noting all substantive and formal errors, with multiple alternative suggestions for each.</item>
+  <item>The grade tag **MUST** contain 'fail' if any **formal** or **substantive** errors are identified and 'pass' only if the translation requires no changes at all.</item>
 </output_format>
 """.strip()
 
@@ -127,7 +134,13 @@ OPTIMIZER_RETRY_PROMPT = """
 {CONTEXT}
 <source_text>{SOURCE_TEXT}</source_text>
 <evaluation>{EVALUATION}</evaluation>
-<task>A translation attempt has been evaluated. Your task is to consider the editor's evaluation and then revise the translation accordingly. Follow the output format</task>
+<task>
+A translation attempt has been evaluated. Review the editor's feedback using Nababan's TQA framework and revise the translation to correct all substantive and formal errors. Ensure the revised translation maximizes:
+  - Accuracy: faithful meaning and nuance
+  - Acceptability: natural style and target language norms
+  - Readability: smooth, clear, and coherent flow
+Follow the output format.
+</task>
 """.strip()
 
 
@@ -157,7 +170,10 @@ class SourceTextEntry(TypedDict):
     text: str
     type: str
     id: int
+
+    # RAG
     external_knowledge: list[str]
+    idiom_matches: list[IdiomMatchResult]
 
 
 class State(TypedDict):
@@ -222,16 +238,50 @@ def build_messages(
     return messages
 
 
-def format_context(state: State) -> str:
+def format_external_knowledge(external_knowledge: list[str]) -> str:
+    if not external_knowledge:
+        return ""
+
     nl = "\n"
     return f"""
-<context>
-  <text_type>{state["source_text"]["type"]}</text_type>
-  <source_lang>{state["source_text"]["source_lang"]}</source_lang>
-  <target_lang>{state["source_text"]["target_lang"]}</target_lang>
   <external_knowledge>
-{nl.join([f"    <item>{i}</item>" for i in state["source_text"].get("external_knowledge", [])])}
+{nl.join([f"    <item>{i}</item>" for i in external_knowledge])}
   </external_knowledge>
+    """
+
+
+def format_idiom_knowledge(idiom_matches: list[IdiomMatchResult]) -> str:
+    nl = "\n"
+    if not idiom_matches:
+        return ""
+
+    def format_senses(senses: list[str]) -> str:
+        return str([f"{j}. {k} " for j, k in enumerate(senses, start=1)])
+
+    # def format_translations(translations: dict[str, str]) -> str:
+    #     if not translations:
+    #         return ""
+
+    #     return "\n\n    Translations:\n" + "\n".join(
+    #         [f"        {k}: {v}" for k, v in translations.items()]
+    #     )
+
+    return f"""
+  <idiom_knowledge>
+{nl.join([f"      <item>{i['idiom']}:{nl}{format_senses(i['senses'])}</item>" for i in idiom_matches])}
+  </idiom_knowledge>
+"""
+
+
+def format_context(state: State) -> str:
+    source_text = state["source_text"]
+    return f"""
+<context>
+  <text_type>{source_text["type"]}</text_type>
+  <source_lang>{source_text["source_lang"]}</source_lang>
+  <target_lang>{source_text["target_lang"]}</target_lang>
+{format_external_knowledge(source_text.get("external_knowledge", []))}
+{format_idiom_knowledge(source_text.get("idiom_matches", []))}
 </context>
 """.strip()
 
@@ -425,7 +475,7 @@ class FileProcessor:
         "evaluator_user_prompt",
     )
 
-    STATE_HANDLERS = {
+    STATE_HANDLERS: Final = {
         "optimization": handle_optimization_state,
         "evaluation": handle_evaluation_state,
     }
@@ -490,7 +540,9 @@ class FileProcessor:
 
         self.open()
 
-        input_json = json.loads(self.input_file.read_text("utf-8").strip())
+        input_json = cast(
+            Corpus, json.loads(self.input_file.read_text("utf-8").strip())
+        )
 
         for text_idx, text in enumerate(input_json["texts"]):
             LOGGER.info(
@@ -507,6 +559,7 @@ class FileProcessor:
                 "id": text_idx + 1,
                 "external_knowledge": input_json.get("external_knowledge", [])
                 + text.get("external_knowledge", []),
+                "idiom_matches": await get_idiom_definitions(text["content"]),
             }
 
             await self._process_text(source_text)

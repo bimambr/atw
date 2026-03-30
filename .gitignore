@@ -4,3 +4,12 @@
 *.gguf
 *.pyc
 evaluator_optimizer_attempts/
+
+# nix derivations
+# nix build .#pythonEnv -o ./.python-env
+.python-env
+# nix build .#llamaCppCuda -o ./.llama-cpp-result
+.llama-cpp-result
+
+# serialised embeddings
+*.pkl

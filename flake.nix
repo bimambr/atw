@@ -27,8 +27,11 @@
             aiohttp
             pandas
             ruff
+            sentence-transformers
           ]);
       in {
+        packages = {inherit llamaCppCuda pythonEnv;};
+
         devShells.default = pkgs.mkShell {
           nativeBuildInputs = [pkgs.makeWrapper];
 
@@ -39,16 +42,12 @@
             pkgs.basedpyright
             pkgs.just
             pkgs.aria2
-
-            pkgs.vulkan-tools
-            pkgs.vulkan-loader
-            pkgs.vulkan-headers
           ];
 
           shellHook = ''
             echo "Environment loaded with CUDA support."
             echo "Python version: $(python --version)"
-            echo "Llama server: $(llama-server --version | head -n 1)"
+            llama-server --version
           '';
         };
       }

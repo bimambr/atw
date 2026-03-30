@@ -18,11 +18,18 @@ import argparse
 import asyncio
 import json
 import logging
+import os
+import pickle
 import re
+from collections.abc import Awaitable
 from pathlib import Path
-from typing import Awaitable, TypedDict, TypeVar, cast
+from typing import TypeVar, cast
 
 import aiohttp
+import torch
+from sentence_transformers import SentenceTransformer, util
+
+from _types import CLIArgs, IdiomDefinitionEntry, IdiomMatchResult, Payload
 
 LOGGER = logging.getLogger("lib")
 
@@ -40,16 +47,67 @@ DEFAULT_REFINEMENT_ITERATIONS = 3
 MAX_REFINEMENT_ITERATIONS = 5
 # provide up to MAX_N_ITERATIONS iterations worth of seeds
 TIMEOUT = 240
+VECTORISED_DICTIONARY_PATH = "vectorised_dict.pkl"
+IDIOM_MATCH_THRESHOLD = 0.55
+
+if os.path.exists(VECTORISED_DICTIONARY_PATH):
+    with open(VECTORISED_DICTIONARY_PATH, "rb") as f:
+        _vector_data = pickle.load(f)
+        _idiom_embeddings = cast(
+            "dict[str, IdiomDefinitionEntry]", _vector_data["dictionary"]
+        )
+        _phrases = cast("list[str]", _vector_data["phrases"])
+        _dict_embeddings = cast(torch.Tensor, _vector_data["embeddings"])
+
+    _embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+else:
+    _idiom_embeddings: dict[str, IdiomDefinitionEntry] = {}
+    _phrases: list[str] = []
+    _dict_embeddings = None
+    _embedding_model = None
 
 
-class Payload(TypedDict, total=False):
-    model: str
-    stream: bool
-    temperature: float
-    seed: int
-    messages: list[dict[str, str]]
-    cache_prompt: bool
-    grammar: str
+async def get_idiom_definitions(excerpt: str) -> list[IdiomMatchResult]:
+    if not _idiom_embeddings or _dict_embeddings is None or _embedding_model is None:
+        return []
+
+    raw_chunks = re.split(r"[,.;:!?\n]", excerpt)
+    chunks = [chunk.strip() for chunk in raw_chunks if len(chunk.strip()) > 2]
+
+    if not chunks:
+        return []
+
+    def _compute_similarities():
+        assert _dict_embeddings is not None
+        chunk_embeddings = _embedding_model.encode(chunks, convert_to_tensor=True)
+        cosine_scores = util.cos_sim(chunk_embeddings, _dict_embeddings)
+        match_coords = torch.where(cosine_scores >= IDIOM_MATCH_THRESHOLD)
+        return match_coords, cosine_scores
+
+    match_coordinates, cosine_scores = await asyncio.to_thread(_compute_similarities)
+    results: list[IdiomMatchResult] = []
+    found_idiom_keys = set()
+    for chunk_idx, idiom_idx in zip(match_coordinates[0], match_coordinates[1]):
+        idiom_key = _phrases[idiom_idx]
+
+        if idiom_key not in found_idiom_keys:
+            score = cosine_scores[chunk_idx][idiom_idx].item()
+            entry = _idiom_embeddings[idiom_key]
+
+            results.append(
+                {
+                    "idiom": idiom_key,
+                    "senses": entry.get("senses", []),
+                    "translations": entry.get("translations", {}),
+                    "matched_chunk": chunks[chunk_idx],
+                    "score": round(score, 3),
+                }
+            )
+            found_idiom_keys.add(idiom_key)
+
+    results.sort(key=lambda x: x["score"], reverse=True)
+    LOGGER.info("Found idiom matches: \n%s", results)
+    return results
 
 
 async def stream_response(response: aiohttp.ClientResponse) -> str:
@@ -182,88 +240,86 @@ def get_next_available_path(path: Path) -> Path:
     return parent / f"{stem}_{next_index}{suffix}"
 
 
-class CLIArgs(argparse.Namespace):
-    endpoint: str
-    model: str
-    iterations: int
-    input: str
-    timeout: int
-    refinement_iterations: int
-    cache_prompt: bool
-    omit_roles: bool
-    keep_n_messages: int
-    save_output: bool
-
-
 def get_parsed_args() -> type[CLIArgs]:
     parser = argparse.ArgumentParser(description="llama.cpp Translation Experiment")
-    parser.add_argument(
+    _ = parser.add_argument(
         "--endpoint",
         default=ENDPOINT,
         help=f"OpenAI-like API endpoint URL (default: {ENDPOINT})",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--model",
         default=MODEL_NAME,
         help=f"Model name to use (default: {MODEL_NAME})",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--iterations",
         type=lambda x: min(int(x), MAX_N_ITERATIONS),
         default=DEFAULT_N_ITERATIONS,
         help=f"Number of iterations per temperature (default: {DEFAULT_N_ITERATIONS}, cap: {MAX_N_ITERATIONS})",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--refinement-iterations",
         type=lambda x: min(int(x), MAX_REFINEMENT_ITERATIONS),
         default=DEFAULT_REFINEMENT_ITERATIONS,
         help=f"Number of refinement iterations (default: {DEFAULT_REFINEMENT_ITERATIONS}, cap: {MAX_REFINEMENT_ITERATIONS})",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--input",
         required=True,
         help="Path to the input JSON file(s) containing the source text to translate. Use `,` to separate multiple files",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--timeout",
         type=int,
         default=TIMEOUT,
         help=f"Timeout for API requests in seconds (default: {TIMEOUT})",
     )
-    parser.add_argument(
-        "--simulate-thinking",
-        action="store_true",
-        default=False,
-        help="Simulate 'thinking' time by asking the model to analyse the text before attempting translation",
-    )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--cache-prompt",
         action="store_true",
         default=False,
         help="Cache the prompt for faster subsequent requests",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--omit-roles",
         action="store_true",
         default=False,
         help="Omit roles in system prompts",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--preserve-last-n-messages",
         type=int,
         default=0,
         help="Preserve last N messages of interaction history when optimizing translations (-1: all, 0: none).",
         dest="keep_n_messages",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--no-save",
         action="store_false",
         default=True,
         help="Do not save the output to a file.",
         dest="save_output",
     )
-    parsed = parser.parse_args(namespace=CLIArgs)
 
+    # TODO: Debug flags. Default behaviour runs a sweep: zero-shot, L1, L2, L3, and L1+L2+L3.
+    _ = parser.add_argument(
+        "-1",
+        action="store_true",
+        help="Enable first level optimisation: CoT + prompt engineering",
+    )
+    _ = parser.add_argument(
+        "-2",
+        action="store_true",
+        help="Enable second level optimisation: RAG with vectorised idiom definitions",
+    )
+    _ = parser.add_argument(
+        "-3",
+        action="store_true",
+        help="Enable third level optimisation: Agentic loop workflow",
+    )
+
+    parsed = parser.parse_args(namespace=CLIArgs)
     LOGGER.info("Using endpoint: %s", parsed.endpoint)
     LOGGER.info("Model: %s", parsed.model)
     LOGGER.info("Iterations per seed: %d", parsed.iterations)
@@ -274,5 +330,4 @@ def get_parsed_args() -> type[CLIArgs]:
     LOGGER.info("Omit roles: %s", parsed.omit_roles)
     LOGGER.info("Preserve last N messages: %d", parsed.keep_n_messages)
     LOGGER.info("Save output: %s", parsed.save_output)
-
     return parsed
