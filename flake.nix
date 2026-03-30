@@ -15,13 +15,11 @@
       system: let
         pkgs = import nixpkgs {
           inherit system;
-
-          # For CUDA support:
-          # config.allowUnfree = true;
+          config.allowUnfree = true;
         };
 
-        llamaCppVulkan = pkgs.llama-cpp.override {
-          vulkanSupport = true;
+        llamaCppCuda = pkgs.llama-cpp.override {
+          cudaSupport = true;
         };
 
         pythonEnv = pkgs.python311.withPackages (ps:
@@ -36,7 +34,8 @@
 
           packages = [
             pythonEnv
-            llamaCppVulkan
+            llamaCppCuda
+            pkgs.cudatoolkit
             pkgs.basedpyright
             pkgs.just
             pkgs.aria2
@@ -47,7 +46,7 @@
           ];
 
           shellHook = ''
-            echo "Environment loaded with Vulkan support."
+            echo "Environment loaded with CUDA support."
             echo "Python version: $(python --version)"
             echo "Llama server: $(llama-server --version | head -n 1)"
           '';
