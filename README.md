@@ -42,16 +42,33 @@ scoop bucket add versions
 scoop install python311 llama.cpp-vulkan
 ```
 
+3a. Optionally, install `just` and `aria2` for runner and model downloader:
+```sh
+scoop install just aria2
+```
+
 4. Install Python dependencies:
 
 ```sh
 python311 -m pip install aiohttp
 ```
 
-5. Download the Model: Download the [unsloth/gemma-3n-E4B-it-GGUF](https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF) model from Hugging Face and place it in the root directory of this project (we use specifically the Q4_K_M quant).
+5. Download the Model: Download the [unsloth/gemma-3n-E4B-it-GGUF](https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF) model from Hugging Face and place it in the root directory of this project (we use specifically the Q4_K_M quant). If you have `just` and `aria2` installed, you can run `just setup` to download the model.
 
 > [!NOTE]
-> For other platforms (Linux/macOS): You will need to install Python 3.11 and compile llama.cpp from source according to their official documentation.
+> For other platforms (Linux/macOS): You will need to install Python 3.11 and compile llama.cpp from source according to their official documentation, or use Nix (see [Quick Setup (Nix)](#quick-setup-nix)).
+
+## Quick Setup (Nix)
+
+If you have Nix with flakes enabled, you can get a fully reproducible environment:
+
+```sh
+# Enter the development shell (required before running any `just` commands)
+nix develop
+
+# Then download the model (run once)
+just setup
+```
 
 ## Usage
 
@@ -87,6 +104,9 @@ Open a terminal in the project's root directory and run the `llama-server`. This
 ```sh
 # Example command to run llama-server
 llama-server -m .\gemma-3n-E4B-it.gguf --port 8000 -c 32768 -fa on --cache-ram 0 --repeat-penalty 1.0 --min-p 0.01 --top-k 64 --top-p 0.95 --no-webui -ngl 99
+
+# Or using just:
+just serve
 ```
 
 ##### Step 3: Run the Experiment Script
@@ -95,6 +115,9 @@ Open a second terminal in the project's root directory. Run the `evaluator_optim
 
 ```sh
 python evaluator_optimizer.py --input "corpus/literature.json" --timeout 0 --iterations 1 --refinement-iterations 3 --preserve-last-n-messages 2
+
+# Or using just:
+just run
 ```
 
 ## Output
