@@ -39,7 +39,7 @@ T = TypeVar("T")
 class Bail(Exception): ...
 
 
-ENDPOINT = "http://localhost:8000/v1/chat/completions"
+ENDPOINT = "http://localhost:8127/v1/chat/completions"
 MODEL_NAME = "gemma-3n-E4B-it-GGUF"
 DEFAULT_N_ITERATIONS = 5
 MAX_N_ITERATIONS = 10
