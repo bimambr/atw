@@ -1,6 +1,7 @@
-# Agentic Translation Workflow
+# Context-Augmented Refinement for (LLM) Translation
 
-This repository contains the scripts and methodology for a thesis project analysing the quality of translations produced by a local Large Language Model (default: gemma-3n). The framework uses a multi-agent, iterative workflow to generate, evaluate, and refine translations, providing a rich dataset for qualitative analysis.
+This repository contains the scripts and methodology for a thesis project analysing the quality of translations produced by a local Large Language Model (default: gemma-3n).
+The framework uses RAG and an iterative workflow to generate, evaluate, and refine translations, providing a rich dataset for analysis.
 
 ## Workflow Graph
 
@@ -8,12 +9,9 @@ This repository contains the scripts and methodology for a thesis project analys
   <img alt="workflow graph" src="docs/graph.png" />
 </p>
 
-The workflow was inspired by LangChain's [evaluator-optimizer](https://docs.langchain.com/oss/python/langgraph/workflows-agents#evaluator-optimizer), with some twists being:
-
-1. Draft generation and refinement here are treated as separate nodes for a better visualisation.[^1]
-2. The interaction history may or may not be included via the `--preserve_history` flag. Doing so will generally help making the evaluator more consistent in each iteration.
-
-[^1]: Practically, the two nodes are handled by the same function in the code.
+The workflow was inspired by Aman Madaan's [self-refine](https://github.com/madaan/self-refine)
+and LangChain's [evaluator-optimizer](https://docs.langchain.com/oss/python/langgraph/workflows-agents#evaluator-optimizer),
+further grounded using RAG to dynamically inject contexts (e.g., idiom definitions, etc).
 
 ## Requirements
 
@@ -25,9 +23,11 @@ The workflow was inspired by LangChain's [evaluator-optimizer](https://docs.lang
   - At least 16GB RAM if running on CPU, or
   - 6GB VRAM (NVIDIA GPU recommended).
 
-## Quick Setup (Windows)
+## Quick Setup
 
-These instructions use the [Scoop](https://scoop.sh) package manager for a straightforward setup on Windows.
+<details>
+
+<summary>Using Scoop on Windows</summary>
 
 1. Install Scoop from the official [website](https://scoop.sh).
 2. Add `versions` bucket:
@@ -55,12 +55,13 @@ python311 -m pip install aiohttp
 
 5. Download the Model: Download the [unsloth/gemma-3n-E4B-it-GGUF](https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF) model from Hugging Face and place it in the root directory of this project (we use specifically the Q4_K_M quant). If you have `just` and `aria2` installed, you can run `just setup` to download the model.
 
-> [!NOTE]
-> For other platforms (Linux/macOS): You will need to install Python 3.11 and compile llama.cpp from source according to their official documentation, or use Nix (see [Quick Setup (Nix)](#quick-setup-nix)).
+</details>
 
-## Quick Setup (Nix)
+<details>
 
-If you have Nix with flakes enabled, you can get a fully reproducible environment:
+<summary>Using Nix on WSL/Darwin/Unix</summary>
+
+If you have [Nix](https://nix.dev) with flakes enabled, you can get a fully reproducible environment:
 
 ```sh
 # Enter the development shell (required before running any `just` commands)
@@ -69,6 +70,8 @@ nix develop
 # Then download the model (run once)
 just setup
 ```
+
+</details>
 
 ## Usage
 
