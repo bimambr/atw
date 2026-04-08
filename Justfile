@@ -1,5 +1,5 @@
-model_url := "https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF/resolve/main/gemma-3n-E4B-it-Q4_K_M.gguf?download=true"
-model_file := "gemma-3n-E4B-it-Q4_K_M.gguf"
+model_url := "https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/main/gemma-4-E2B-it-Q8_0.gguf?download=true"
+model_file := "gemma-4-E2B-it-Q8_0.gguf"
 port := "8127"
 ctx := "32768"
 

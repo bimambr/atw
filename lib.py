@@ -40,7 +40,7 @@ class Bail(Exception): ...
 
 
 ENDPOINT = "http://localhost:8127/v1/chat/completions"
-MODEL_NAME = "gemma-3n-E4B-it-GGUF"
+MODEL_NAME = "gemma-4-E2B-it-GGUF"
 DEFAULT_N_ITERATIONS = 5
 MAX_N_ITERATIONS = 10
 DEFAULT_REFINEMENT_ITERATIONS = 3

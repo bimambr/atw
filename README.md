@@ -1,6 +1,6 @@
 # Context-Augmented Refinement for (LLM) Translation
 
-This repository contains the scripts and methodology for a thesis project analysing the quality of translations produced by a local Large Language Model (default: gemma-3n).
+This repository contains the scripts and methodology for a thesis project analysing the quality of translations produced by a local Large Language Model (default: gemma-4-E2B).
 The framework uses RAG and an iterative workflow to generate, evaluate, and refine translations, providing a rich dataset for analysis.
 
 ## Workflow Graph
@@ -18,14 +18,14 @@ further grounded using RAG to dynamically inject contexts (e.g., idiom definitio
 - Python 3.11 or higher (Python 3.14 is untested as of writing).
 - Python package: `aiohttp`.
 - llama.cpp (llama-server).
-- LLM Model: A GGUF-compatible model. The experiments for the thesis were conducted using `unsloth/gemma-3n-E4B-it-GGUF` (Q4_K_M quant).
+- LLM Model: A GGUF-compatible model. The experiments for the thesis were conducted using `unsloth/gemma-4-E2B-it-GGUF` (Q8_0 quant).
 - Memory:
   - At least 16GB RAM if running on CPU, or
   - 6GB VRAM (NVIDIA GPU recommended).
 
 ## Quick Setup
 
-<details>
+<details open>
 
 <summary>Using Scoop on Windows</summary>
 
@@ -42,18 +42,22 @@ scoop bucket add versions
 scoop install python311 llama.cpp-vulkan
 ```
 
-3a. Optionally, install `just` and `aria2` for runner and model downloader:
-```sh
-scoop install just aria2
-```
-
 4. Install Python dependencies:
 
 ```sh
 python311 -m pip install aiohttp
 ```
 
-5. Download the Model: Download the [unsloth/gemma-3n-E4B-it-GGUF](https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF) model from Hugging Face and place it in the root directory of this project (we use specifically the Q4_K_M quant). If you have `just` and `aria2` installed, you can run `just setup` to download the model.
+5. There are two options to get the model:
+
+  - Download the model directly: Download the [unsloth/gemma-4-E2B-it-GGUF](https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF) model from Hugging Face and place it in the root directory of this project (we use specifically the Q8_0 quant).
+  - Or, install `just` and `aria2` for runner and model downloader:
+```sh
+scoop install just aria2
+
+# Run this to download the model
+just setup
+```
 
 </details>
 
@@ -100,13 +104,42 @@ Create a JSON file in the corpus directory (e.g., [corpus/literature.json](corpu
 }
 ```
 
+Then, vectorise the idioms in the json files. The json paths are hardcoded due to differing schematics between idiom providers.
+But you can add more idioms inside `idiom_dict/cherrypicked.json` with the following structure:
+
+```json
+{
+    "<idiom 1>": {
+        "senses": [
+            "<sense 1>",
+            "<sense 2>"
+        ]
+    },
+    "<idiom 2>": {
+        "senses": [
+            "<sense 1>"
+        ]
+    },
+    ...
+}
+```
+
+Run this to vectorise:
+
+```sh
+python vectorise_dictionary.py
+
+# Or using just:
+just vectorise
+```
+
 ##### Step 2: Run the LLM Server
 
 Open a terminal in the project's root directory and run the `llama-server`. This will load the model into memory and open an API endpoint for the script to use.
 
 ```sh
 # Example command to run llama-server
-llama-server -m .\gemma-3n-E4B-it.gguf --port 8000 -c 32768 -fa on --cache-ram 0 --repeat-penalty 1.0 --min-p 0.01 --top-k 64 --top-p 0.95 --no-webui -ngl 99
+llama-server -m .\gemma-4-E2B-it.gguf --port 8000 -c 32768 -fa on --cache-ram 0 --repeat-penalty 1.0 --min-p 0.01 --top-k 64 --top-p 0.95 --no-webui -ngl 99
 
 # Or using just:
 just serve
