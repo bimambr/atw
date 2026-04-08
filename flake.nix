@@ -37,7 +37,15 @@
             aiohttp
             pandas
             ruff
-            sentence-transformers
+            (sentence-transformers.overrideAttrs
+              (old: {
+                postInstall =
+                  (old.postInstall or "")
+                  + ''
+                    # https://github.com/microsoft/pylance-release/issues/7615
+                    rm -f $out/lib/python*/site-packages/transformers/py.typed
+                  '';
+              }))
           ]);
       in {
         packages = {inherit llamaCppCuda pythonEnv;};
