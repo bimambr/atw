@@ -24,7 +24,3 @@ run input_file="corpus/literature.json":
 
 vectorise:
     python vectorise_dictionary.py
-
-# Experimental
-aggregate input_csv:
-    python aggregator.py --input "{{input_csv}}"
