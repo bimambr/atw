@@ -21,14 +21,26 @@ import logging
 import re
 import signal
 import time
+from collections.abc import Sequence
 from io import TextIOWrapper
 from pathlib import Path
 from types import TracebackType
-from typing import Any, Final, Iterable, Literal, Protocol, TypedDict, cast
+from typing import Final, Literal, cast, overload
 
 import aiohttp
 
-from _types import Corpus, IdiomMatchResult
+from _types import (
+    CSVWriter,
+    Corpus,
+    ExampleEntry,
+    IdiomEntry,
+    Rubric,
+    RubricEntry,
+    SourceTextEntry,
+    State,
+    TranslationAttempt,
+    TranslationEvaluation,
+)
 from lib import (
     Bail,
     get_idiom_definitions,
@@ -41,9 +53,9 @@ from lib import (
 
 # use greedy decoding to get the most deterministic output from the model, even on gpu
 # seeds do not matter when temp is close to 0, but are kept as they are still useful when running on cpu
-EVALUATOR_TEMP = 0.01
-OPTIMIZER_TEMP = 0.01
-OPTIMIZER_ALT_TEMP = 0.01
+EVALUATOR_TEMP = 0.7
+OPTIMIZER_TEMP = 0.7
+OPTIMIZER_ALT_TEMP = 0.7
 EVALUATOR_SEED = 727
 SEEDS = [101, 202, 303, 404, 505, 606, 707, 808, 909, 1010]
 
@@ -53,152 +65,316 @@ logging.basicConfig(level=logging.INFO)
 ARGS = get_parsed_args()
 
 
-# gemma models do not have the system role concept, but unsloth's chat template handles it
-# so we can still use it
-# ref: https://ai.google.dev/gemma/docs/core/prompt-structure
-# ref: https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF?chat_template=default
-OPTIMIZER_SYSTEM_PROMPT = f"""{
-    "<role>You are a professional linguistic translator.</role>" * (not ARGS.omit_roles)
-}
-<goal>Your primary directive is to provide a fluent, accurate, and contextually appropriate translation, following Nababan's Translation Quality Assessment (TQA) principles: maximize accuracy, acceptability, and readability.</goal>.
-<requirements>
-  <item>Ensure **accuracy**: convey the exact meaning of the source text, preserving semantic nuances.</item>
-  <item>Ensure **acceptability**: use language that reads naturally, conforms to target language norms, and preserves style and tone.</item>
-  <item>Ensure **readability**: the translation must be clear, coherent, and easy to understand.</item>
-  <item>Pay attention to any markedness, whether syntactical or lexical, that should be considered in the translation.</item>
-  <item>Preserve the tone, style, and intent of the source text.</item>
-  <item>Ensure the translation reads naturally in the target language.</item>
-  <item>Adhere to the context provided, as it may contain important information affecting your translation choices.</item>
-</requirements>
-<output_format>
-  <item>First, paraphrase and retell the source text in English to demonstrate your understanding in the retelling tag.</item>
-  <item>Then, provide your translation of the source text.</item>
-</output_format>
-""".strip()
+# FIXME: maybe dynamically inject examples
+EXAMPLES: list[ExampleEntry] = [
+    ExampleEntry(
+        source_lang="en",
+        target_lang="id",
+        source_text="He finally spilled the beans about the surprise party, ruining everything.",
+        translation="Dia akhirnya menumpahkan kacang tentang pesta kejutan itu, merusak segalanya.",
+        rubric=Rubric(
+            accuracy=RubricEntry(
+                score=1,
+                feedback="The idiom 'spilled the beans' was translated literally as 'menumpahkan kacang', completely losing the intended meaning of revealing a secret.",
+            ),
+            acceptability=RubricEntry(
+                score=1,
+                feedback="The phrase 'menumpahkan kacang' is nonsensical in Indonesian within this context.",
+            ),
+            readability=RubricEntry(
+                score=3,
+                feedback="The sentence structure itself is readable, despite the semantic error.",
+            ),
+        ),
+        revision="""Planned Changes:
+- The phrase 'menumpahkan kacang' is a literal calque of the English idiom and makes no sense. I will replace it with the natural Indonesian equivalent 'membocorkan rahasia'.
+
+Revision: Dia akhirnya membocorkan rahasia tentang pesta kejutan itu, merusak segalanya.""",
+        known_idioms=[
+            IdiomEntry(
+                idiom="spill the beans",
+                senses=[
+                    "To reveal a secret.",
+                    "To disclose information prematurely.",
+                ],
+                translations={},
+            )
+        ],
+    ),
+    ExampleEntry(
+        source_lang="en",
+        target_lang="id",
+        source_text="After years of hard work, she finally hit the nail on the head with her new business idea.",
+        translation="Setelah bertahun-tahun bekerja keras, dia akhirnya menemukan ide bisnis yang tepat sasaran.",
+        rubric=Rubric(
+            accuracy=RubricEntry(
+                score=3,
+                feedback="The idiom 'hit the nail on the head' is accurately rendered as 'tepat sasaran'.",
+            ),
+            acceptability=RubricEntry(
+                score=3, feedback="The translation is acceptable and idiomatic."
+            ),
+            readability=RubricEntry(
+                score=3, feedback="The sentence is fluent and natural."
+            ),
+        ),
+        revision=None,
+        known_idioms=[
+            IdiomEntry(
+                idiom="hit the nail on the head",
+                senses=[
+                    "To describe exactly what is causing a situation or problem.",
+                    "To do or say something exactly right.",
+                ],
+                translations={},
+            )
+        ],
+    ),
+    ExampleEntry(
+        source_lang="en",
+        target_lang="id",
+        source_text="When he heard the news, he felt under the weather and decided to stay home.",
+        translation="Ketika dia mendengar kabar itu, dia memutuskan untuk tetap di rumah karena cuaca buruk.",
+        rubric=Rubric(
+            accuracy=RubricEntry(
+                score=1,
+                feedback="The idiom 'under the weather' means feeling ill, but the translation misinterpreted it as literal bad weather ('cuaca buruk').",
+            ),
+            acceptability=RubricEntry(
+                score=3,
+                feedback="The sentence is grammatically correct and acceptable as a standalone Indonesian sentence.",
+            ),
+            readability=RubricEntry(
+                score=3,
+                feedback="The sentence flows naturally and is easy to understand.",
+            ),
+        ),
+        revision="""Planned Changes:
+- The translation incorrectly interpreted 'under the weather' literally as bad weather ('cuaca buruk'). I will correct this to reflect the true meaning of feeling ill by using 'merasa tidak enak badan'.
+
+Revision: Ketika dia mendengar kabar itu, dia merasa tidak enak badan dan memutuskan untuk tetap di rumah.""",
+        known_idioms=[
+            IdiomEntry(
+                idiom="under the weather",
+                senses=["Feeling ill.", "Slightly unwell or in low spirits."],
+                translations={},
+            )
+        ],
+    ),
+    ExampleEntry(
+        source_lang="en",
+        target_lang="id",
+        source_text="She let the cat out of the bag during dinner, and everyone was shocked.",
+        translation="Dia secara tidak sengaja telah menyingkap sebuah tabir kerahasiaan pada saat perjamuan makan malam, dan semua hadirin terperanjat.",
+        rubric=Rubric(
+            accuracy=RubricEntry(
+                score=3,
+                feedback="The core meaning of revealing a secret is successfully retained.",
+            ),
+            acceptability=RubricEntry(
+                score=1,
+                feedback="The phrasing ('menyingkap sebuah tabir kerahasiaan', 'perjamuan', 'hadirin terperanjat') is excessively poetic and formal for a simple dinner setting.",
+            ),
+            readability=RubricEntry(
+                score=2,
+                feedback="The sentence is overly wordy and cumbersome to read.",
+            ),
+        ),
+        revision="""Planned Changes:
+- The phrasing 'menyingkap sebuah tabir kerahasiaan' is too formal and poetic; I will change it to 'membocorkan rahasia'.
+- The terms 'perjamuan makan malam' and 'hadirin terperanjat' are too stiff; I will simplify them to 'makan malam' and 'semua orang terkejut'.
+
+Revision: Dia tanpa sengaja membocorkan rahasia saat makan malam, dan semua orang terkejut.""",
+        known_idioms=[
+            IdiomEntry(
+                idiom="let the cat out of the bag",
+                senses=[
+                    "To accidentally reveal a secret.",
+                    "To disclose something that was meant to be hidden.",
+                ],
+                translations={},
+            )
+        ],
+    ),
+]
 
 
-OPTIMIZER_INIT_USER_PROMPT = """
-{CONTEXT}
-<source_text>{SOURCE_TEXT}</source_text>
-<task>Provide only the retelling and translation following the required output format.</task>
-""".strip()
+def format_external_knowledge(external_knowledge: list[str]) -> str:
+    if not external_knowledge:
+        return ""
 
-
-OPTIMIZER_GRAMMAR = r"""
-root ::= "<retelling>" text "</retelling>" "\n" "<translation>" text "</translation>"
-text ::= (
-    [^<] |
-    "<" [^/]
-)*
+    nl = "\n"
+    return f"""
+External retrieved knowledge:
+{nl.join([f"- {i}" for i in external_knowledge])}
 """
 
 
-EVALUATOR_SYSTEM_PROMPT = f"""
-{"<role>You are a meticulous and highly critical linguistic editor tasked with evaluating translations.</role>" * (not ARGS.omit_roles)}
-<goal>Your goal is to ensure that every translation meets the highest standards of quality using Nababan's Translation Quality Assessment (TQA) framework.</goal>
-<requirements>
-  <item>Evaluate **accuracy**: Does the translation convey the exact meaning and semantic nuances of the source text? Identify any **substantive errors**.</item>
-  <item>Evaluate **acceptability**: Is the translation natural, stylistically appropriate, and consistent with target language norms? Identify any **formal errors**.</item>
-  <item>Evaluate **readability**: Is the translation coherent, smooth, and easy to understand?</item>
-  <item>Pay close attention to tone, style, cultural nuances, and any markedness of the source text.</item>
-  <item>Provide detailed explanations in English, categorizing errors where possible as **substantive** or **formal** and suggesting multiple alternatives or improvements.</item>
-  <item>Do not repeat or contradict the previous suggestions</item>
-</requirements>
-<output_format>
-  <item>The analysis tag contains analysis of the source text in terms of meaning, tone, style, and translation challenges.</item>
-  <item>The evaluation tag contains a detailed critique of the translation attempt, noting all substantive and formal errors, with multiple alternative suggestions for each.</item>
-  <item>The grade tag **MUST** contain 'fail' if any **formal** or **substantive** errors are identified and 'pass' only if the translation requires no changes at all.</item>
-</output_format>
-""".strip()
+def format_idiom_knowledge(idioms: Sequence[IdiomEntry]) -> str:
+    nl = "\n"
+    if not idioms:
+        return ""
 
+    def format_senses(senses: list[str]) -> str:
+        return "\n".join([f"  {j}. {k} " for j, k in enumerate(senses, start=1)])
 
-EVALUATOR_USER_PROMPT = """
-{CONTEXT}
-<source_text>{SOURCE_TEXT}</source_text>
-<attempt>{TRANSLATION_ATTEMPT}</attempt>
-<task>Evaluate the content in the attempt tag based on the source text provided. Provide only the evaluation following the required output format.</task>
-""".strip()
+    # def format_translations(translations: dict[str, str]) -> str:
+    #     if not translations:
+    #         return ""
 
+    #     return "\n\n    Translations:\n" + "\n".join(
+    #         [f"        {k}: {v}" for k, v in translations.items()]
+    #     )
 
-EVALUATOR_GRAMMAR = r"""
-root ::= "<analysis>" text "</analysis>" "\n" "<evaluation>" text "</evaluation>" "\n" "<grade>" grade "</grade>"
-text ::= (
-    [^<] |
-    "<" [^/]
-)*
-grade ::= "pass" | "fail"
+    return f"""
+Known idiom definitions:
+{nl.join([f"- {i['idiom']}:{nl}{format_senses(i['senses'])}" for i in idioms])}
 """
 
 
-OPTIMIZER_RETRY_PROMPT = """
-{CONTEXT}
-<source_text>{SOURCE_TEXT}</source_text>
-<evaluation>{EVALUATION}</evaluation>
-<task>
-A translation attempt has been evaluated. Review the editor's feedback using Nababan's TQA framework and revise the translation to correct all substantive and formal errors. Ensure the revised translation maximizes:
-  - Accuracy: faithful meaning and nuance
-  - Acceptability: natural style and target language norms
-  - Readability: smooth, clear, and coherent flow
-Follow the output format.
-</task>
+def format_context(state: State) -> str:
+    source_text = state["source_text"]
+    return f"""
+Text type: {source_text["type"]}
+
+Translation direction: from {source_text["source_lang"]} to {source_text["target_lang"]}
+
+{format_external_knowledge(source_text.get("external_knowledge", []))}
+
+{format_idiom_knowledge(source_text.get("idiom_matches", []))}
 """.strip()
 
 
-class TranslationAttempt(TypedDict, total=False):
-    type: Literal["attempt"]
-    translation: str
-    raw_output: str
-    prompt: str
-    system_prompt: str
-    seed: int
-    temp: float
+def format_rubric(rubric: Rubric) -> str:
+    return f"""
+- accuracy: {rubric["accuracy"]["score"]}. {rubric["accuracy"]["feedback"]}
+- acceptability: {rubric["acceptability"]["score"]}. {rubric["acceptability"]["feedback"]}
+- readability: {rubric["readability"]["score"]}. {rubric["readability"]["feedback"]}
+""".strip()
 
 
-class TranslationEvaluation(TypedDict, total=False):
-    type: Literal["evaluation"]
-    grade: str
-    raw_output: str
-    prompt: str
-    system_prompt: str
-    seed: int
-    temp: float
+def format_examples(examples: list[ExampleEntry], depth: int) -> str:
+    def format_example(entry: ExampleEntry) -> str:
+        buffers = [
+            f"""
+Source text: {entry["source_text"]}
+
+Type: novel
+
+{format_idiom_knowledge(entry["known_idioms"])}
+
+Translation: {entry["translation"]}
+""".strip(),
+            f"""Grade the translation based on a 3-point rubric: accuracy, acceptability, and readability.
+
+Grades:
+{format_rubric(entry["rubric"])}
+""".strip(),
+            f"""
+Based on the grades, now provide a revision.
+
+{entry["revision"]}
+""".strip(),
+        ]
+        return "\n".join(buffers[:depth])
+
+    nl = "\n"
+    return f"""
+=== EXAMPLES START ===
+
+{f"{nl}---{nl}".join([format_example(i) for i in examples])}
+
+=== EXAMPLES END ===
+""".strip()
 
 
-class SourceTextEntry(TypedDict):
-    source_lang: str
-    target_lang: str
-    text: str
-    type: str
-    id: int
+# TODO: implement get_prompt_template(depth: int) -> str
+# and use it in get_examples() as well to reduce repetition
+OPTIMIZER_INIT_PROMPT = f"""
+{format_examples(EXAMPLES, 1)}
 
-    # RAG
-    external_knowledge: list[str]
-    idiom_matches: list[IdiomMatchResult]
+{{CONTEXT}}
 
+Source text: {{SOURCE_TEXT}}
 
-class State(TypedDict):
-    iteration_id: int
-    source_text: SourceTextEntry
-    next_state: str
-    max_attempt: int
-    attempt: int
-    history: list[TranslationAttempt | TranslationEvaluation]
-    optimizer_seed: int
-    evaluator_seed: int
-    client: aiohttp.ClientSession
-    csv_writer: "CSVWriter | None"
+Translation:
+""".strip()
 
 
-class CSVWriter(Protocol):
-    def writerow(self, row: Iterable[Any]) -> Any: ...
+EVALUATOR_PROMPT = f"""
+{format_examples(EXAMPLES, 2)}
 
-    def writerows(self, rows: Iterable[Iterable[Any]]) -> None: ...
+{{CONTEXT}}
+
+Source text: {{SOURCE_TEXT}}
+
+Translation: {{TRANSLATION_ATTEMPT}}
+
+Evaluate the translation based on a strict 3-point rubric. You MUST penalize literal translations (calques) of English idioms or phrases that sound unnatural in {{TARGET_LANGUAGE}}.
+
+Scoring Criteria:
+Accuracy:
+- 3: Meaning is perfectly preserved.
+- 2: Minor shifts in meaning, but core message remains.
+- 1: Severe mistranslation, hallucination, or literal translation of an idiom that loses the figurative meaning.
+
+Acceptability (Naturalness):
+- 3: Reads like a text originally written by a native Indonesian speaker.
+- 2: Grammatically correct, but phrasing is slightly awkward or overly formal.
+- 1: "Translationese" - grammatically correct but utilizes phrasing nobody uses in real life (e.g., word-for-word literal translations like "penipu kepercayaan" for "confidence trickster").
+
+Readability:
+- 3: Flows smoothly and effortlessly.
+- 2: understandable, but requires slight cognitive effort due to clunky syntax.
+- 1: Difficult to read or confusing.
+
+Target language evaluation:
+1. Identify any idioms or complex phrases in the source text.
+2. State how a native {{TARGET_LANGUAGE}} speaker would naturally express that concept, ignoring the {{SOURCE_LANGUAGE}} phrasing.
+3. Compare the provided translation against the native expectation. If the provided translation uses literal phrasing ("translationese") instead of the native equivalent, you MUST score Acceptability as a 1 or 2.
+
+Grades:
+""".strip()
 
 
-def get_last_evaluation(state: State) -> TranslationEvaluation | None:
+OPTIMIZER_RETRY_PROMPT = f"""
+{format_examples(EXAMPLES, 3)}
+
+{{CONTEXT}}
+
+Source text: {{SOURCE_TEXT}}
+
+Translation: {{TRANSLATION_ATTEMPT}}
+
+Grade the translation based on a 3-point rubric: accuracy, acceptability, and readability.
+
+Grades:
+{{GRADES}}
+
+Based on the grades, now provide a revision.
+
+Planned Changes:
+""".strip()
+
+
+@overload
+def get_last_state(
+    state: State, type: Literal["attempt"]
+) -> TranslationAttempt | None: ...
+
+
+@overload
+def get_last_state(
+    state: State, type: Literal["evaluation"]
+) -> TranslationEvaluation | None: ...
+
+
+def get_last_state(
+    state: State, type: Literal["attempt"] | Literal["evaluation"]
+) -> TranslationEvaluation | TranslationAttempt | None:
     for entry in state["history"][::-1]:
         assert "type" in entry
-        if entry["type"] == "evaluation":
+        if entry["type"] == type:
             return entry
     return None
 
@@ -232,58 +408,34 @@ def fill_in_messages(state: State, messages: list[tuple[str, str, str]]) -> None
 def build_messages(
     state: State, system_prompt: str, user_prompt: str
 ) -> list[tuple[str, str, str]]:
-    messages: list[tuple[str, str, str]] = [("system", system_prompt, "system")]
+    messages: list[tuple[str, str, str]] = []
+    if system_prompt:
+        messages.append(("system", system_prompt, "system"))
     fill_in_messages(state, messages)
     messages.append(("user", user_prompt, "user"))
     return messages
 
 
-def format_external_knowledge(external_knowledge: list[str]) -> str:
-    if not external_knowledge:
-        return ""
+def parse_rubric(text: str) -> Rubric:
+    rubric: Rubric = {
+        "accuracy": {"score": 0, "feedback": "Missing feedback."},
+        "acceptability": {"score": 0, "feedback": "Missing feedback."},
+        "readability": {"score": 0, "feedback": "Missing feedback."},
+    }
 
-    nl = "\n"
-    return f"""
-  <external_knowledge>
-{nl.join([f"    <item>{i}</item>" for i in external_knowledge])}
-  </external_knowledge>
-    """
+    for line in text.strip().splitlines():
+        # match: - key: score. feedback
+        match = re.match(r"- (\w+): (\d+)\.\s*(.*)", line.strip())
+        if not match:
+            continue
 
+        key, score, feedback = match.groups()
+        rubric[key] = {
+            "score": int(score),
+            "feedback": feedback.strip(),
+        }
 
-def format_idiom_knowledge(idiom_matches: list[IdiomMatchResult]) -> str:
-    nl = "\n"
-    if not idiom_matches:
-        return ""
-
-    def format_senses(senses: list[str]) -> str:
-        return str([f"{j}. {k} " for j, k in enumerate(senses, start=1)])
-
-    # def format_translations(translations: dict[str, str]) -> str:
-    #     if not translations:
-    #         return ""
-
-    #     return "\n\n    Translations:\n" + "\n".join(
-    #         [f"        {k}: {v}" for k, v in translations.items()]
-    #     )
-
-    return f"""
-  <idiom_knowledge>
-{nl.join([f"      <item>{i['idiom']}:{nl}{format_senses(i['senses'])}</item>" for i in idiom_matches])}
-  </idiom_knowledge>
-"""
-
-
-def format_context(state: State) -> str:
-    source_text = state["source_text"]
-    return f"""
-<context>
-  <text_type>{source_text["type"]}</text_type>
-  <source_lang>{source_text["source_lang"]}</source_lang>
-  <target_lang>{source_text["target_lang"]}</target_lang>
-{format_external_knowledge(source_text.get("external_knowledge", []))}
-{format_idiom_knowledge(source_text.get("idiom_matches", []))}
-</context>
-""".strip()
+    return rubric
 
 
 async def handle_optimization_state(state: State) -> None:
@@ -303,15 +455,13 @@ async def handle_optimization_state(state: State) -> None:
     )
 
     context = format_context(state)
-    system_prompt = OPTIMIZER_SYSTEM_PROMPT
-
     if is_draft:
-        prompt = OPTIMIZER_INIT_USER_PROMPT.format(
-            SOURCE_TEXT=state["source_text"]["text"],
-            CONTEXT=context,
+        prompt = OPTIMIZER_INIT_PROMPT.format(
+            SOURCE_TEXT=state["source_text"]["text"], CONTEXT=context
         )
     else:
-        last_evaluation = get_last_evaluation(state)
+        last_attempt = get_last_state(state, "attempt") or {}
+        last_evaluation = get_last_state(state, "evaluation")
 
         # THIS SHOULD NEVER HAPPEN
         if not last_evaluation:
@@ -326,16 +476,18 @@ async def handle_optimization_state(state: State) -> None:
             state["next_state"] = ""
             return
 
-        assert "raw_output" in last_evaluation
+        assert "translation" in last_attempt
+        assert "rubric" in last_evaluation
         prompt = OPTIMIZER_RETRY_PROMPT.format(
             SOURCE_TEXT=state["source_text"]["text"],
-            EVALUATION=last_evaluation["raw_output"],
+            TRANSLATION_ATTEMPT=last_attempt["translation"],
+            GRADES=format_rubric(last_evaluation["rubric"]),
             CONTEXT=context,
         )
 
     temp = OPTIMIZER_TEMP if is_draft else OPTIMIZER_ALT_TEMP
     seed = state["optimizer_seed"] * 10 + state["attempt"]
-    messages = build_messages(state, system_prompt, prompt)
+    messages = build_messages(state, "", prompt)
     output = (
         await run_inference(
             state["client"],
@@ -346,24 +498,16 @@ async def handle_optimization_state(state: State) -> None:
             timeout=ARGS.timeout,
             cache_prompt=ARGS.cache_prompt,
             messages=messages,
-            grammar=OPTIMIZER_GRAMMAR,
         )
     ).strip()
-
-    translation = (
-        output
-        if not (
-            match := re.search(r"<translation>(.*?)<\/translation>", output, re.DOTALL)
-        )
-        else match.group(1).strip()
-    )
+    match = re.search(r"Revision:\s*(.*)", output, re.IGNORECASE | re.DOTALL)
+    translation = match.group(1).strip() if match else output.strip()
     state["history"].append(
         {
             "type": "attempt",
             "translation": translation,
             "raw_output": output,
             "prompt": prompt,
-            "system_prompt": system_prompt,
             "seed": seed,
             "temp": temp,
         }
@@ -387,13 +531,14 @@ async def handle_evaluation_state(state: State) -> None:
     assert last_attempt.get("type") == "attempt"
     assert "translation" in last_attempt
 
-    system_prompt = EVALUATOR_SYSTEM_PROMPT
-    prompt = EVALUATOR_USER_PROMPT.format(
+    prompt = EVALUATOR_PROMPT.format(
         SOURCE_TEXT=state["source_text"]["text"],
         TRANSLATION_ATTEMPT=last_attempt["translation"],
         CONTEXT=format_context(state),
+        TARGET_LANGUAGE=state["source_text"]["target_lang"],
+        SOURCE_LANGUAGE=state["source_text"]["source_lang"],
     )
-    messages = build_messages(state, system_prompt, prompt)
+    messages = build_messages(state, "", prompt)
     output = (
         await run_inference(
             state["client"],
@@ -404,19 +549,15 @@ async def handle_evaluation_state(state: State) -> None:
             timeout=ARGS.timeout,
             cache_prompt=ARGS.cache_prompt,
             messages=messages,
-            grammar=EVALUATOR_GRAMMAR,
         )
     ).strip()
-
+    rubric = parse_rubric(output.strip())
     evaluation: TranslationEvaluation = {
         "type": "evaluation",
         "prompt": prompt,
-        "system_prompt": system_prompt,
         "seed": seed,
         "temp": EVALUATOR_TEMP,
-        "grade": "fail"
-        if not (match := re.search(r"<grade>(.*?)<\/grade>", output, re.DOTALL))
-        else match.group(1).strip().lower(),
+        "rubric": rubric,
         "raw_output": output,
     }
     state["history"].append(evaluation)
@@ -424,7 +565,7 @@ async def handle_evaluation_state(state: State) -> None:
     if csv_writer := state.get("csv_writer"):
         assert "translation" in last_attempt
         assert "raw_output" in last_attempt
-        assert "grade" in evaluation
+        assert "rubric" in evaluation
         assert "raw_output" in evaluation
 
         csv_writer.writerow(
@@ -438,19 +579,23 @@ async def handle_evaluation_state(state: State) -> None:
                 EVALUATOR_TEMP,
                 state["source_text"]["text"],
                 last_attempt["translation"],
-                evaluation["grade"],
+                evaluation["rubric"],
                 last_attempt["raw_output"],
                 evaluation["raw_output"],
                 time.ctime(),
                 last_attempt.get("system_prompt", "Not available."),
                 last_attempt.get("prompt", "Not available."),
-                system_prompt,
+                "",
                 prompt,
             )
         )
 
     state["next_state"] = "optimization"
-    if "pass" in evaluation["grade"] or state["attempt"] >= state["max_attempt"]:
+    if (
+        sum(rubric[i]["score"] for i in ("accuracy", "acceptability", "readability"))
+        == 9
+        or state["attempt"] >= state["max_attempt"]
+    ):
         state["next_state"] = ""
 
 
@@ -487,15 +632,15 @@ class FileProcessor:
         output_file: Path,
         client: aiohttp.ClientSession,
     ) -> None:
-        self.id = id
-        self.input_file = input_file
-        self.output_file = output_file
+        self.id: int = id
+        self.input_file: Path = input_file
+        self.output_file: Path = output_file
 
         self.csv_file: TextIOWrapper | None = None
         self.csv_writer: CSVWriter | None = None
         self.log_file: TextIOWrapper | None = None
 
-        self.client = client
+        self.client: aiohttp.ClientSession = client
 
     def open(self) -> None:
         if not ARGS.save_output:
@@ -594,7 +739,7 @@ class FileProcessor:
                 await asyncio.sleep(0.1)
 
             if self.log_file:
-                self.log_file.write(
+                _ = self.log_file.write(
                     json.dumps(state["history"], ensure_ascii=False, indent=4) + "\n"
                 )
                 self.log_file.flush()

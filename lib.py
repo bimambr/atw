@@ -29,7 +29,7 @@ import aiohttp
 import torch
 from sentence_transformers import SentenceTransformer, util
 
-from _types import CLIArgs, IdiomDefinitionEntry, IdiomMatchResult, Payload
+from _types import CLIArgs, IdiomEntry, IdiomMatchResult, Payload
 
 LOGGER = logging.getLogger("lib")
 
@@ -53,15 +53,13 @@ IDIOM_MATCH_THRESHOLD = 0.55
 if os.path.exists(VECTORISED_DICTIONARY_PATH):
     with open(VECTORISED_DICTIONARY_PATH, "rb") as f:
         _vector_data = pickle.load(f)
-        _idiom_embeddings = cast(
-            "dict[str, IdiomDefinitionEntry]", _vector_data["dictionary"]
-        )
+        _idiom_embeddings = cast("dict[str, IdiomEntry]", _vector_data["dictionary"])
         _phrases = cast("list[str]", _vector_data["phrases"])
         _dict_embeddings = cast(torch.Tensor, _vector_data["embeddings"])
 
     _embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 else:
-    _idiom_embeddings: dict[str, IdiomDefinitionEntry] = {}
+    _idiom_embeddings: dict[str, IdiomEntry] = {}
     _phrases: list[str] = []
     _dict_embeddings = None
     _embedding_model = None
@@ -125,11 +123,14 @@ async def stream_response(response: aiohttp.ClientResponse) -> str:
             break
         try:
             json_data = json.loads(data)
-            chunk = (
-                json_data.get("choices", [{}])[0].get("delta", {}).get("content")
-            ) or ""
+            delta = json_data.get("choices", [{}])[0].get("delta", {})
+            reasoning = delta.get("reasoning_content") or ""
+            chunk = (delta.get("content")) or ""
             full_response += chunk
-            print(chunk, end="", flush=True)
+            if reasoning:
+                print(reasoning, end="", flush=True)
+            if chunk:
+                print(chunk, end="", flush=True)
         except json.JSONDecodeError:
             LOGGER.error("Failed to decode JSON chunk: %s", data)
 
@@ -169,6 +170,7 @@ async def run_inference(
                 "seed": seed,
                 "messages": formatted_messages,
                 "cache_prompt": cache_prompt,
+                "thinking_budget": "high",
             }
 
             if grammar is not None:
