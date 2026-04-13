@@ -18,19 +18,9 @@
           config.allowUnfree = true;
         };
 
-        llamaCppCuda =
-          (pkgs.llama-cpp.override {
-            cudaSupport = true;
-          }).overrideAttrs (old: {
-            version = "8642"; # gemma4 support
-
-            src = pkgs.fetchFromGitHub {
-              owner = "ggml-org";
-              repo = "llama.cpp";
-              rev = "b8642";
-              hash = "sha256-CGoqQd4jdcVlttg1fFkUNW4v3Rxwfkj+TVlcHD59RhI=";
-            };
-          });
+        llamaCppCuda = pkgs.llama-cpp.override {
+          cudaSupport = true;
+        };
 
         pythonEnv = pkgs.python311.withPackages (ps:
           with ps; [
