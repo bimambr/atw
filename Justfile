@@ -15,8 +15,10 @@ setup:
         echo "Model already exists."; \
     fi
 
-serve model_file="{{model_file}}" *args:
-    @echo "Starting llama-server with model: {{model_file}}"
+serve mf="" *args:
+    @model="{{mf}}"; \
+    if [ -z "$model" ]; then model="{{model_file}}"; fi; \
+    echo "Starting llama-server with model: $model"; \
     llama-server -m ./{{model_file}} --port {{port}} -c {{ctx}} -fa on --cache-ram 2048 --repeat-penalty 1.0 --min-p 0.01 --top-k 64 --top-p 0.95 {{args}}
 
 run input_file="corpus/literature.json":
