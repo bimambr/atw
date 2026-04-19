@@ -5,11 +5,9 @@
 *.pyc
 evaluator_optimizer_attempts/
 
-# nix derivations
-# nix build .#pythonEnv -o ./.python-env
-.python-env
-# nix build .#llamaCppCuda -o ./.llama-cpp-result
-.llama-cpp-result
+# Nix
+# `nix develop --profile ./.nix`
+.nix*
 
 # serialised embeddings
 *.pkl
