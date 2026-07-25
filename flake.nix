@@ -43,7 +43,6 @@
             (pkgs.rWrapper.override {
               packages = with pkgs.rPackages; [
                 brms
-                tidybayes
                 bayestestR
                 emmeans
                 performance
