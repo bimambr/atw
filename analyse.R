@@ -75,18 +75,26 @@ evaluate_bayes_clmm <- function(response_var, data) {
   models
 }
 
+print_posterior_summary <- function(obj) {
+  post <- describe_posterior(
+    obj,
+    rope_range = c(-0.18, 0.18),
+    ci = 0.89,
+    ci_method = "hdi",
+    rope_ci = 1.0
+  )
+  cols_to_exp <- intersect(c("Median", "CI_low", "CI_high"), names(post))
+  post[cols_to_exp] <- lapply(post[cols_to_exp], exp)
+  print(post)
+  invisible(post)
+}
+
 print_diagnostics <- function(models, metric) {
   for (model_type in names(models)) {
     cat(sprintf(
       "--- %s: %s diagnostics ---\n", toupper(metric), model_type
     ))
-    print(describe_posterior(
-      models[[model_type]],
-      ci = 0.89,
-      ci_method = "hdi",
-      rope_ci = 1.0
-    ))
-
+    print_posterior_summary(models[[model_type]])
     cat(sprintf(
       "\n--- %s: %s posterior contrasts ---\n", toupper(metric), model_type
     ))
@@ -95,14 +103,8 @@ print_diagnostics <- function(models, metric) {
       ~ rag_status * refine_status,
       mode = "latent"
     )
-    contrasts <- pairs(em)
-    print(describe_posterior(
-      contrasts,
-      rope_range = rope_range(models[[model_type]]),
-      ci = 0.89,
-      ci_method = "hdi",
-      rope_ci = 1.0
-    ))
+    contrasts <- pairs(em, reverse = TRUE)
+    print_posterior_summary(contrasts)
     cat("\n")
   }
 
@@ -220,6 +222,10 @@ print_effect_plots <- function(metrics) {
       combined_data <- rbind(combined_data, post_desc)
     }
 
+    combined_data$Median <- exp(combined_data$Median)
+    combined_data$CI_low <- exp(combined_data$CI_low)
+    combined_data$CI_high <- exp(combined_data$CI_high)
+
     combined_data$Parameter <- sapply(combined_data$Parameter, function(x) {
       if (grepl("RAG.*Refine|Refine.*RAG", x, ignore.case = TRUE)) {
         "RAG + Refine"
@@ -248,7 +254,7 @@ print_effect_plots <- function(metrics) {
       y = Parameter, x = Median, color = metric, shape = Threshold
     )) +
       geom_vline(
-        xintercept = 0,
+        xintercept = 1,
         linetype = "dashed",
         color = "black", alpha = 0.6
       ) +
@@ -259,7 +265,7 @@ print_effect_plots <- function(metrics) {
         linewidth = 1
       ) +
       labs(
-        x = "Estimate (Log-Odds)",
+        x = "Odds Ratio (Exponentiated Log-Odds 89% HDI)",
         y = "Predictor",
         color = "Metric"
       ) +
@@ -271,7 +277,8 @@ print_effect_plots <- function(metrics) {
         legend.margin = margin(t = 0, r = 0, b = 0, l = 0),
         panel.grid.minor = element_blank()
       ) +
-      scale_color_brewer(palette = "Set2")
+      scale_color_brewer(palette = "Set2") +
+      scale_x_log10()
 
     if (m_type == "PO") {
       p <- p + guides(shape = "none")
