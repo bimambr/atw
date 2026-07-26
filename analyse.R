@@ -28,6 +28,14 @@ df$idiom_id <- as.factor(df$idiom_id)
 df$rag_status <- relevel(df$rag_status, ref = "RAG-")
 df$refine_status <- relevel(df$refine_status, ref = "Refine-")
 
+for (col in c("accuracy", "acceptability", "readability")) {
+  cat(sprintf("\n--- %s Frequencies ---\n", toupper(col)))
+  freq_table <- table(df$treatment, df[[col]])
+  freq_df <- as.data.frame.matrix(freq_table)
+  colnames(freq_df) <- paste("Score", colnames(freq_df))
+  print(freq_df)
+}
+
 evaluate_bayes_clmm <- function(response_var, data) {
   cat("\n======================================================\n")
   cat(sprintf(
