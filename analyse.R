@@ -100,11 +100,25 @@ print_posterior_summary <- function(obj) {
 print_diagnostics <- function(models, metric) {
   for (model_type in names(models)) {
     cat(sprintf(
-      "--- %s: %s diagnostics ---\n", toupper(metric), model_type
+      "--- %s: %s random effects diagnostics ---\n",
+      toupper(metric), model_type
+    ))
+    summary <- posterior_summary(
+      models[[model_type]],
+      probs = c(0.055, 0.945),
+    )
+    sd_rows <- grep("^sd_", rownames(summary))
+    print(round(summary[sd_rows, , drop = FALSE], 2))
+
+    cat(sprintf(
+      "\n--- %s: %s fixed effects diagnostics ---\n",
+      toupper(metric), model_type
     ))
     print_posterior_summary(models[[model_type]])
+
     cat(sprintf(
-      "\n--- %s: %s posterior contrasts ---\n", toupper(metric), model_type
+      "\n--- %s: %s posterior contrasts ---\n",
+      toupper(metric), model_type
     ))
     em <- emmeans(
       models[[model_type]],
