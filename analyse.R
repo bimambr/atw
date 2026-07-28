@@ -10,15 +10,33 @@ cache_file <- "bayes_models.rds"
 df <- read.csv("translations_long.csv")
 
 tqa_table <- aggregate(
-  with(df, (3 * accuracy + 2 * acceptability + readability) / 6),
-  by = list(treatment = df$treatment),
-  FUN = mean
+  cbind(accuracy, acceptability, readability) ~ treatment,
+  data = df,
+  FUN = function(x) round(mean(x), 2)
+)
+tqa_table$Weighted_Average <- round((
+  3 * tqa_table$accuracy +
+    2 * tqa_table$acceptability +
+    1 * tqa_table$readability
+) / 6, 2)
+colnames(tqa_table) <- c(
+  "Treatment",
+  "Accuracy Mean",
+  "Acceptability Mean",
+  "Readability Mean",
+  "Weighted Average"
 )
 cat("TQA (Weighted Average) Summary:\n")
 print(tqa_table)
 
 for (col in c("accuracy", "acceptability", "readability")) {
   df[[col]] <- factor(df[[col]], ordered = TRUE, levels = c(1, 2, 3))
+
+  cat(sprintf("\n--- %s Frequencies ---\n", toupper(col)))
+  freq_table <- table(df$treatment, df[[col]])
+  freq_df <- as.data.frame.matrix(freq_table)
+  colnames(freq_df) <- paste("Score", colnames(freq_df))
+  print(freq_df)
 }
 
 df$rag_status <- as.factor(df$rag_status)
@@ -27,14 +45,6 @@ df$idiom_id <- as.factor(df$idiom_id)
 
 df$rag_status <- relevel(df$rag_status, ref = "RAG-")
 df$refine_status <- relevel(df$refine_status, ref = "Refine-")
-
-for (col in c("accuracy", "acceptability", "readability")) {
-  cat(sprintf("\n--- %s Frequencies ---\n", toupper(col)))
-  freq_table <- table(df$treatment, df[[col]])
-  freq_df <- as.data.frame.matrix(freq_table)
-  colnames(freq_df) <- paste("Score", colnames(freq_df))
-  print(freq_df)
-}
 
 evaluate_bayes_clmm <- function(response_var, data) {
   cat("\n======================================================\n")
