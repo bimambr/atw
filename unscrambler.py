@@ -50,11 +50,6 @@ class LongRow(TypedDict):
     accuracy: float
     acceptability: float
     readability: float
-    weighted_tqa: float
-
-
-def calculate_tqa(acc: float, accp: float, read: float) -> float:
-    return ((acc * 3) + (accp * 2) + (read * 1)) / 6
 
 
 def main():
@@ -119,7 +114,6 @@ def main():
                 acc = scores[col]["acc"]
                 accp = scores[col]["accp"]
                 read = scores[col]["read"]
-                tqa = calculate_tqa(acc, accp, read)
 
                 long_rows.append(
                     LongRow(
@@ -133,7 +127,6 @@ def main():
                         accuracy=acc,
                         acceptability=accp,
                         readability=read,
-                        weighted_tqa=tqa,
                     )
                 )
 
@@ -148,7 +141,6 @@ def main():
         "accuracy",
         "acceptability",
         "readability",
-        "weighted_tqa",
     ]
 
     with open(args.out, "w", encoding="utf-8", newline="") as f:
