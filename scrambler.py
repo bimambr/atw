@@ -213,6 +213,7 @@ def main():
         "accuracy_D",
         "acceptability_D",
         "readability_D",
+        "note",
     ]
 
     if (
@@ -240,6 +241,7 @@ def main():
                     "accuracy_D": "",
                     "acceptability_D": "",
                     "readability_D": "",
+                    "note": "",
                 }
             )
 

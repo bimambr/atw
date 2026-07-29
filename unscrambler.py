@@ -50,6 +50,7 @@ class LongRow(TypedDict):
     accuracy: float
     acceptability: float
     readability: float
+    note: str
 
 
 def main():
@@ -127,6 +128,7 @@ def main():
                         accuracy=acc,
                         acceptability=accp,
                         readability=read,
+                        note=tx == "T1" and row["note"].format(**mapping) or "",
                     )
                 )
 
@@ -141,6 +143,7 @@ def main():
         "accuracy",
         "acceptability",
         "readability",
+        "note",
     ]
 
     with open(args.out, "w", encoding="utf-8", newline="") as f:
