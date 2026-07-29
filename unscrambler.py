@@ -110,7 +110,7 @@ def main():
                 )
                 continue
 
-            for col, tx in mapping.items():
+            for col, tx in sorted(mapping.items(), key=lambda i: i[1]):
                 acc = scores[col]["acc"]
                 accp = scores[col]["accp"]
                 read = scores[col]["read"]
