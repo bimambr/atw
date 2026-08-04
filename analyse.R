@@ -5,8 +5,6 @@ library(performance)
 library(ggplot2)
 library(loo)
 
-cache_file <- "bayes_models.rds"
-
 df <- read.csv("translations_long.csv")
 
 tqa_table <- aggregate(
@@ -46,51 +44,44 @@ df$idiom_id <- as.factor(df$idiom_id)
 df$rag_status <- relevel(df$rag_status, ref = "RAG-")
 df$refine_status <- relevel(df$refine_status, ref = "Refine-")
 
-evaluate_bayes_clmm <- function(response_var, data) {
-  cat("\n======================================================\n")
-  cat(sprintf(
-    "ANALYSING: %s (Bayesian Cumulative Logit)\n",
-    toupper(response_var)
-  ))
-  cat("======================================================\n")
-
-  model_specs <- list(
-    PO = list(
-      formula = paste(
-        response_var,
-        "~ rag_status * refine_status + (1 | idiom_id)"
-      )
+fit_bayes_clmm <- function(response_var,
+                           data,
+                           model_type = "PO",
+                           prior = "normal(0, 1)") {
+  formula <- switch(model_type,
+    PO = paste(
+      response_var,
+      "~ rag_status * refine_status + (1 | idiom_id)"
     ),
-    NPO = list(
-      formula = paste(
-        response_var,
-        "~ cs(rag_status * refine_status) + (1 | idiom_id)"
-      )
-    )
+    NPO = paste(
+      response_var,
+      "~ cs(rag_status * refine_status) + (1 | idiom_id)"
+    ),
+    stop("model_type must be PO or NPO")
   )
 
-  models <- list()
+  cat(
+    "\nFitting",
+    response_var,
+    model_type,
+    "with prior",
+    prior,
+    "\n"
+  )
 
-  for (model_name in names(model_specs)) {
-    cat("\n---------------------------------\n")
-    cat("Fitting", model_name, "model\n")
-    cat("---------------------------------\n")
-    models[[model_name]] <- brm(
-      formula = as.formula(model_specs[[model_name]]$formula),
-      data = data,
-      family = cumulative(link = "logit"),
-      prior = set_prior("normal(0, 1)", class = "b"),
-      cores = 4,
-      chains = 4,
-      iter = 4000,
-      warmup = 2000,
-      seed = 123,
-      control = list(adapt_delta = 0.95),
-      save_pars = save_pars(all = TRUE)
-    )
-  }
-
-  models
+  brm(
+    formula = as.formula(formula),
+    data = data,
+    family = cumulative(link = "logit"),
+    prior = set_prior(prior, class = "b"),
+    cores = 4,
+    chains = 4,
+    iter = 4000,
+    warmup = 2000,
+    seed = 123,
+    control = list(adapt_delta = 0.95),
+    save_pars = save_pars(all = TRUE)
+  )
 }
 
 print_posterior_summary <- function(obj) {
@@ -320,15 +311,77 @@ print_effect_plots <- function(metrics) {
   }
 }
 
+get_arg_value <- function(flag) {
+  idx <- match(flag, args)
+
+  if (is.na(idx) || idx == length(args)) {
+    return(NULL)
+  }
+
+  args[idx + 1]
+}
+
+run_prior_sensitivity <- function(targets, data) {
+  sensitivity_priors <- c(
+    "normal(0,0.5)",
+    "normal(0,2)"
+  )
+
+  results <- list()
+
+  for (metric in names(targets)) {
+    model_type <- targets[[metric]]
+
+    if (is.null(model_type)) {
+      next
+    }
+
+    if (!model_type %in% c("PO", "NPO")) {
+      stop(metric, " must be PO or NPO")
+    }
+
+    results[[metric]] <- list()
+
+    for (prior in sensitivity_priors) {
+      results[[metric]][[prior]] <-
+        fit_bayes_clmm(
+          response_var = metric,
+          data = data,
+          model_type = model_type,
+          prior = prior
+        )
+    }
+  }
+
+  results
+}
+
+# --- MAIN ANALYSIS ---
+cache_file <- "bayes_models.rds"
 metrics <- if (file.exists(cache_file)) {
   cat("\nUsing cached fitted models from", cache_file, "\n")
   readRDS(cache_file)
 } else {
-  metrics <- list(
-    accuracy      = evaluate_bayes_clmm("accuracy", df),
-    acceptability = evaluate_bayes_clmm("acceptability", df),
-    readability   = evaluate_bayes_clmm("readability", df)
-  )
+  metrics <- list()
+
+  for (metric in c(
+    "accuracy",
+    "acceptability",
+    "readability"
+  )) {
+    metrics[[metric]] <- list(
+      PO = fit_bayes_clmm(
+        response_var = metric,
+        data = df,
+        model_type = "PO",
+      ),
+      NPO = fit_bayes_clmm(
+        response_var = metric,
+        data = df,
+        model_type = "NPO",
+      )
+    )
+  }
 
   saveRDS(metrics, cache_file)
   metrics
@@ -341,3 +394,78 @@ for (metric in names(metrics)) {
 
 print_ppc_plots(metrics)
 print_effect_plots(metrics)
+
+# --- SENSITIVITY ANALYSIS ---
+sensitivity_cache_file <- "bayes_sensitivity_models.rds"
+args <- commandArgs(trailingOnly = TRUE)
+run_sensitivity <- "--sensitivity" %in% args
+
+selected_models <- list(
+  accuracy = get_arg_value("--accuracy"),
+  acceptability = get_arg_value("--acceptability"),
+  readability = get_arg_value("--readability")
+)
+
+for (metric in names(selected_models)) {
+  model <- selected_models[[metric]]
+
+  if (!is.null(model) && !model %in% c("PO", "NPO")) {
+    stop(
+      metric,
+      " sensitivity model must be PO or NPO, got: ",
+      model
+    )
+  }
+}
+
+if (run_sensitivity) {
+  if (all(vapply(selected_models, is.null, logical(1)))) {
+    stop(
+      "--sensitivity requires at least one model flag ",
+      "(e.g., --accuracy PO)"
+    )
+  }
+
+  sensitivity_models <- if (file.exists(sensitivity_cache_file)) {
+    cat(
+      "\nUsing cached sensitivity models from",
+      sensitivity_cache_file,
+      "\n"
+    )
+
+    readRDS(sensitivity_cache_file)
+  } else {
+    sensitivity_models <- run_prior_sensitivity(
+      targets = selected_models,
+      data = df
+    )
+
+    saveRDS(
+      sensitivity_models,
+      sensitivity_cache_file
+    )
+
+    sensitivity_models
+  }
+
+  cat("\n===== SENSITIVITY POSTERIOR SUMMARIES =====\n")
+  for (metric in names(sensitivity_models)) {
+    cat(
+      "\n###",
+      toupper(metric),
+      "###\n"
+    )
+
+    for (prior in names(sensitivity_models[[metric]])) {
+      cat(
+        "\n--- Prior:",
+        prior,
+        "---\n"
+      )
+
+      print_posterior_summary(
+        sensitivity_models[[metric]][[prior]]
+      )
+    }
+  }
+}

@@ -20,7 +20,7 @@ blind_key.json
 tmp/
 Rplots.pdf
 bayes.txt
-bayes_models.rds
+*.rds
 
 # RAG
 mixedbread-ai/
