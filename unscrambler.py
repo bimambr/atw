@@ -299,9 +299,9 @@ def generate_word_tables(evaluated_csv: str, key_json: str, out_file: str):
             for col, tx_code in sorted(mapping.items(), key=lambda x: x[1]):
                 row_cells = t2_table.add_row().cells
 
-                acc = float(entry.get(f"accuracy_{col}", 0))
-                accp = float(entry.get(f"acceptability_{col}", 0))
-                read = float(entry.get(f"readability_{col}", 0))
+                acc = int(entry.get(f"accuracy_{col}", 0))
+                accp = int(entry.get(f"acceptability_{col}", 0))
+                read = int(entry.get(f"readability_{col}", 0))
 
                 note_str = entry.get("note", "")
                 if note_str and "{" in note_str:
@@ -327,19 +327,19 @@ def generate_word_tables(evaluated_csv: str, key_json: str, out_file: str):
                 )
                 create_styled_cell(
                     row_cells[3],
-                    f"{acc:.1f}",
+                    str(acc),
                     t2_widths[3],
                     align=WD_ALIGN_PARAGRAPH.CENTER,
                 )
                 create_styled_cell(
                     row_cells[4],
-                    f"{accp:.1f}",
+                    str(accp),
                     t2_widths[4],
                     align=WD_ALIGN_PARAGRAPH.CENTER,
                 )
                 create_styled_cell(
                     row_cells[5],
-                    f"{read:.1f}",
+                    str(read),
                     t2_widths[5],
                     align=WD_ALIGN_PARAGRAPH.CENTER,
                 )
