@@ -16,6 +16,9 @@ dev = [
   "ruff>=0.15.16",
   "scipy-stubs>=1.17.1.5",
 ]
+writing = [
+    "python-docx>=1.2.0",
+]
 
 [tool.uv.sources]
 torch = { index = "pytorch" }
